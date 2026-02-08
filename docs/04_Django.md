@@ -2,14 +2,13 @@
 
 ## 1. Django導入
 ```bash
-sudo apt update
 sudo apt install -y python3-django
 ```
 
 ## 2. プロジェクト作成
 ```bash
-django-admin startproject tradesystem_web
-cd tradesystem_web
+django-admin startproject tradesystem_web ~/tradesystem-rpi/web
+cd ~/tradesystem-rpi/web
 python3 manage.py startapp prices
 ```
 
