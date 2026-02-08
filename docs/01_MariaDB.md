@@ -22,13 +22,27 @@ sudo mysql
 
 MySQL互換コンソールで実行:
 ```sql
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';
 FLUSH PRIVILEGES;
 ```
 
-### 4.2 接続確認
+### 4.2 192.168.0.0/24 からの接続許可
+MySQL互換コンソールで実行:
+```sql
+CREATE USER 'root'@'192.168.0.%' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'192.168.0.%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+```
+
+MariaDBのバインドアドレスを変更:
 ```bash
-mysql -u root -p
+sudo sed -i 's/^bind-address\s*=.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+sudo systemctl restart mariadb
+```
+
+### 4.3 接続確認
+```bash
+mysql -u root -p -h 192.168.0.10
 ```
 
 ## 5. DB作成
