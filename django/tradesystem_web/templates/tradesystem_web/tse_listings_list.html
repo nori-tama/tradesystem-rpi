@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>TSE Listings</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            margin: 24px;
+            color: #111;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f4f4f4;
+        }
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        .meta {
+            margin: 8px 0 16px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>TSE Listings</h1>
+    <div class="meta">Total: {{ listings|length }}</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Listing Date</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Market</th>
+                <th>Sector 33</th>
+                <th>Sector 17</th>
+                <th>Scale</th>
+                <th>Updated At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in listings %}
+            <tr>
+                <td>{{ item.listing_date }}</td>
+                <td>{{ item.code }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.market }}</td>
+                <td>{{ item.sector33_code }} - {{ item.sector33_name }}</td>
+                <td>{{ item.sector17_code }} - {{ item.sector17_name }}</td>
+                <td>{{ item.scale_code }} - {{ item.scale_name }}</td>
+                <td>{{ item.updated_at }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">No listings found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
