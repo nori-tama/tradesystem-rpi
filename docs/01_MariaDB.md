@@ -22,7 +22,7 @@ sudo mysql
 
 MySQL互換コンソールで実行:
 ```sql
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_password';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
 FLUSH PRIVILEGES;
 ```
 
