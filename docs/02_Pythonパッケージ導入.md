@@ -6,13 +6,13 @@
 ## 2. パッケージ導入（apt）
 外部管理環境（PEP 668）のため、システムパッケージで導入する。
 ```bash
-sudo apt install -y python3-pandas python3-requests python3-pymysql python3-xlrd
+sudo apt install -y python3-pandas python3-requests python3-pymysql python3-xlrd python3-mysqldb
 ```
 
 ## 3. 動作確認
 ```bash
 python3 - <<'PY'
-import pandas, requests, pymysql, xlrd
+import pandas, requests, pymysql, xlrd, MySQLdb
 print("ok")
 PY
 ```

@@ -27,6 +27,6 @@ def tse_listings_list(request):
 
     return render(
         request,
-        'tradesystem_web/tse_listings_list.html',
+        'tse_listings_list.html',
         {'listings': listings},
     )
