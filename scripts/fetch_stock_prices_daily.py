@@ -40,16 +40,18 @@ def resolve_codes(conn: pymysql.Connection, codes_arg: str) -> List[str]:
         return [row[0] for row in cursor.fetchall()]
 
 
-def resolve_start_timestamp(conn: pymysql.Connection, table: str) -> int:
-    sql = f"SELECT MAX(trade_date) FROM `{table}`"
+def resolve_start_timestamp(conn: pymysql.Connection, table: str, code: str) -> int:
+    sql = f"SELECT MAX(trade_date) FROM `{table}` WHERE code = %s"
     with conn.cursor() as cursor:
-        cursor.execute(sql)
+        cursor.execute(sql, (code,))
         result = cursor.fetchone()
         max_date = result[0] if result else None
 
     if max_date:
         next_day = max_date + timedelta(days=1)
-        return int(datetime.combine(next_day, datetime.min.time(), tzinfo=timezone.utc).timestamp())
+        return int(
+            datetime.combine(next_day, datetime.min.time(), tzinfo=timezone.utc).timestamp()
+        )
 
     return 0
 
@@ -146,12 +148,11 @@ def main() -> None:
     try:
         codes = resolve_codes(conn, args.codes)
         total_codes = len(codes)
-        start_ts = resolve_start_timestamp(conn, args.table)
-
         total_rows = 0
         inserted_rows = 0
 
         for code in codes:
+            start_ts = resolve_start_timestamp(conn, args.table, code)
             rows = fetch_prices(code, start_ts, end_ts, args.timeout)
             total_rows += len(rows)
             if rows:
