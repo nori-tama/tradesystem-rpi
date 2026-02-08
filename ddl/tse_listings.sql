@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `tse_listings` (
-  `as_of_date` DATE NULL,
+  `listing_date` DATE NULL,
   `code` VARCHAR(8) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `market` VARCHAR(255) NOT NULL,

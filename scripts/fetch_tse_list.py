@@ -14,7 +14,7 @@ from db_common import get_connection
 JPX_URL = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
 
 COLUMN_MAP = {
-    "日付": "as_of_date",
+    "日付": "listing_date",
     "コード": "code",
     "銘柄名": "name",
     "市場・商品区分": "market",
@@ -53,12 +53,12 @@ def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     if "code" in df.columns:
         df["code"] = df["code"].astype(str).str.zfill(4)
 
-    if "as_of_date" in df.columns:
-        df["as_of_date"] = pd.to_datetime(df["as_of_date"], errors="coerce").dt.date
+    if "listing_date" in df.columns:
+        df["listing_date"] = pd.to_datetime(df["listing_date"], errors="coerce").dt.date
 
     # Replace NaN with safe values for inserts.
     for col in df.columns:
-        if col == "as_of_date":
+        if col == "listing_date":
             df[col] = df[col].where(pd.notna(df[col]), None)
         else:
             df[col] = df[col].fillna("")
