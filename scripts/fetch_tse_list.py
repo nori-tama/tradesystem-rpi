@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch JPX listed stocks and store into MySQL."""
+"""JPXの上場銘柄一覧を取得してMySQLに格納する。"""
 
 import argparse
 import io
@@ -45,7 +45,7 @@ def fetch_dataframe(timeout: int) -> pd.DataFrame:
 
 
 def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    # Keep only known columns for a stable schema.
+    # 既知の列だけに絞り、スキーマを固定する。
     df = df.rename(columns=COLUMN_MAP)
     keep_cols = [name for name in COLUMN_MAP.values() if name in df.columns]
     df = df[keep_cols]
@@ -56,7 +56,7 @@ def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     if "listing_date" in df.columns:
         df["listing_date"] = pd.to_datetime(df["listing_date"], errors="coerce").dt.date
 
-    # Replace NaN with safe values for inserts.
+    # INSERTに安全な値へ置換する。
     for col in df.columns:
         if col == "listing_date":
             df[col] = df[col].where(pd.notna(df[col]), None)
