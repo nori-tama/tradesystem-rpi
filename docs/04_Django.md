@@ -7,7 +7,7 @@ sudo apt install -y python3-django
 
 ## 2. プロジェクト作成
 ```bash
-mkdir -p ~/tradesystem-rpi/webdjango
+mkdir -p ~/tradesystem-rpi/django
 django-admin startproject tradesystem_web ~/tradesystem-rpi/django
 ```
 ```bash
