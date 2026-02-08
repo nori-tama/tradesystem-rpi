@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS `tse_listings` (
+DROP TABLE IF EXISTS `tse_listings`;
+CREATE TABLE `tse_listings` (
   `listing_date` DATE NULL,
   `code` VARCHAR(8) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
