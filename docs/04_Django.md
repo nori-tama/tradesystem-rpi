@@ -14,5 +14,5 @@ django-admin startproject tradesystem_web ~/tradesystem-rpi/django
 ## 3. 起動
 ```bash
 cd ~/tradesystem-rpi/django
-python3 manage.py runserver 0.0.0.0:8000
+python3 manage.py runserver 192.168.0.10:8000
 ```
