@@ -8,6 +8,8 @@ sudo apt install -y python3-django
 ## 2. プロジェクト作成
 ```bash
 django-admin startproject tradesystem_web ~/tradesystem-rpi/web
+```
+```bash
 cd ~/tradesystem-rpi/web
 python3 manage.py startapp prices
 ```
