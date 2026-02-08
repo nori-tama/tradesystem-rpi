@@ -3,19 +3,16 @@
 ## 1. 前提
 - 権限: sudo利用可
 
-## 2. pipの更新
-### 2.1 pipが無い場合の導入
+## 2. パッケージ導入（apt）
+外部管理環境（PEP 668）のため、システムパッケージで導入する。
 ```bash
-sudo apt install -y python3-pip
+sudo apt install -y python3-pandas python3-requests python3-pymysql python3-xlrd
 ```
 
-### 2.2 pipの更新
+## 3. 動作確認
 ```bash
-python3 -m pip install --upgrade pip
-```
-
-## 3. パッケージ導入
-### 3.1 JPX上場銘柄取得スクリプト
-```bash
-python3 -m pip install pandas requests pymysql xlrd
+python3 - <<'PY'
+import pandas, requests, pymysql, xlrd
+print("ok")
+PY
 ```
