@@ -5,13 +5,13 @@
 
 ## 2. インストール
 ```bash
-sudo apt install -y mysql-server
+sudo apt install -y mariadb-server
 ```
 
 ## 3. 起動/自動起動
 ```bash
-sudo systemctl enable mysql
-sudo systemctl start mysql
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
 ```
 
 ## 4. 初期設定
@@ -20,7 +20,7 @@ sudo systemctl start mysql
 sudo mysql
 ```
 
-MySQLコンソールで実行:
+MySQL互換コンソールで実行:
 ```sql
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_password';
 FLUSH PRIVILEGES;
@@ -33,7 +33,7 @@ mysql -u root -p
 
 ## 5. DB作成
 ```bash
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS tradesystem DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS tradesystem DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 ```
 
 ## 6. DDL適用（本プロジェクト）
@@ -47,5 +47,5 @@ mysql -u root -p tradesystem -e "SHOW TABLES;"
 ```
 
 ## 8. トラブルシュート
-- ログ確認: `sudo journalctl -u mysql --no-pager -n 200`
-- 設定ファイル: `/etc/mysql/mysql.conf.d/mysqld.cnf`
+- ログ確認: `sudo journalctl -u mariadb --no-pager -n 200`
+- 設定ファイル: `/etc/mysql/mariadb.conf.d/50-server.cnf`
