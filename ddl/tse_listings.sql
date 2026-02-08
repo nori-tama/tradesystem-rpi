@@ -11,5 +11,6 @@ CREATE TABLE `tse_listings` (
   `scale_code` VARCHAR(16) NOT NULL,
   `scale_name` VARCHAR(255) NOT NULL,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`code`)
+  PRIMARY KEY (`listing_date`, `code`),
+  KEY `idx_tse_listings_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

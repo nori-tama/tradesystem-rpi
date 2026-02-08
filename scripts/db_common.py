@@ -6,7 +6,7 @@ import pymysql
 DB_HOST = "localhost"
 DB_PORT = 3306
 DB_USER = "root"
-DB_PASSWORD = ""
+DB_PASSWORD = "password"
 DB_NAME = "tradesystem"
 DB_CHARSET = "utf8mb4"
 

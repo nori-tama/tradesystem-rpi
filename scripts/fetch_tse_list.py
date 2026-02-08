@@ -6,12 +6,22 @@ import io
 from typing import List
 
 import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
 import pymysql
 import requests
 
 from db_common import get_connection
 
 JPX_URL = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
+
+ALLOWED_MARKETS = {
+    "プライム（内国株式）",
+    "スタンダード（内国株式）",
+    "グロース（内国株式）",
+    "プライム（外国株式）",
+    "スタンダード（外国株式）",
+    "グロース（外国株式）",
+}
 
 COLUMN_MAP = {
     "日付": "listing_date",
@@ -41,27 +51,62 @@ def fetch_dataframe(timeout: int) -> pd.DataFrame:
     resp.raise_for_status()
     data = io.BytesIO(resp.content)
     df = pd.read_excel(data)
+    # ヘッダの前後空白や全角スペースを除去して正規化する。
+    df.columns = (
+        df.columns.astype(str).str.replace("\u3000", " ").str.strip()
+    )
     return df
 
 
 def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     # 既知の列だけに絞り、スキーマを固定する。
+    if "日付" not in df.columns:
+        date_cols = [col for col in df.columns if "日付" in col]
+        if len(date_cols) == 1:
+            df = df.rename(columns={date_cols[0]: "日付"})
+
     df = df.rename(columns=COLUMN_MAP)
     keep_cols = [name for name in COLUMN_MAP.values() if name in df.columns]
     df = df[keep_cols]
+
+    # 指定された市場・商品区分のみに絞り込む。
+    if "market" in df.columns:
+        df = df[df["market"].isin(ALLOWED_MARKETS)]
 
     if "code" in df.columns:
         df["code"] = df["code"].astype(str).str.zfill(4)
 
     if "listing_date" in df.columns:
-        df["listing_date"] = pd.to_datetime(df["listing_date"], errors="coerce").dt.date
+        series = df["listing_date"]
+        if is_datetime64_any_dtype(series):
+            parsed = series
+        elif is_numeric_dtype(series):
+            numeric = pd.to_numeric(series, errors="coerce")
+            numeric_int = numeric.dropna().astype("Int64")
+            # 8桁のYYYYMMDD形式ならそれを優先して変換する。
+            if numeric_int.between(19000101, 21001231).any():
+                parsed = pd.to_datetime(
+                    numeric_int.astype(str), format="%Y%m%d", errors="coerce"
+                )
+            # Excelシリアル日付は概ね20000以上になるため、それを目安に変換する。
+            elif numeric.dropna().ge(20000).any():
+                parsed = pd.to_datetime(
+                    numeric, unit="D", origin="1899-12-30", errors="coerce"
+                )
+            else:
+                parsed = pd.to_datetime(
+                    numeric.astype("Int64").astype(str), errors="coerce"
+                )
+        else:
+            parsed = pd.to_datetime(series.astype(str), errors="coerce")
+
+        parsed = parsed.dt.date
+        df["listing_date"] = parsed.astype(object).where(pd.notna(parsed), None)
 
     # INSERTに安全な値へ置換する。
     for col in df.columns:
-        if col == "listing_date":
-            df[col] = df[col].where(pd.notna(df[col]), None)
-        else:
-            df[col] = df[col].fillna("")
+        if col != "listing_date":
+            df[col] = df[col].astype("string").fillna("")
     return df
 
 
@@ -70,31 +115,34 @@ def upsert_rows(conn: pymysql.Connection, table: str, df: pd.DataFrame) -> int:
     columns = list(df.columns)
     placeholders = ",".join(["%s"] * len(columns))
     cols_sql = ",".join([f"`{c}`" for c in columns])
-    update_sql = ",".join([f"`{c}`=VALUES(`{c}`)" for c in columns if c != "code"])
 
     sql = f"""
-    INSERT INTO `{table}` ({cols_sql})
+    INSERT IGNORE INTO `{table}` ({cols_sql})
     VALUES ({placeholders})
-    ON DUPLICATE KEY UPDATE {update_sql};
     """
 
     values: List[tuple] = [tuple(row[c] for c in columns) for _, row in df.iterrows()]
     with conn.cursor() as cursor:
         cursor.executemany(sql, values)
+        inserted = cursor.rowcount
     conn.commit()
-    return len(values)
+    return inserted
 
 
 def main() -> None:
     args = parse_args()
-    df = fetch_dataframe(args.timeout)
-    df = normalize_dataframe(df)
+    raw_df = fetch_dataframe(args.timeout)
+    total_count = len(raw_df)
+    df = normalize_dataframe(raw_df)
+    matched_count = len(df)
 
     conn = get_connection()
 
     try:
         inserted = upsert_rows(conn, args.table, df)
-        print(f"Upserted {inserted} rows into {args.table}.")
+        print(f"総レコード数: {total_count}")
+        print(f"該当レコード数: {matched_count}")
+        print(f"インサートレコード数: {inserted}")
     finally:
         conn.close()
 
