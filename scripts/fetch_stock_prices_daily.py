@@ -77,16 +77,21 @@ def fetch_prices(
     backoff_sec = 2
     payload = None
     for attempt in range(1, retries + 1):
-        resp = requests.get(url, params=params, timeout=timeout, headers=DEFAULT_HEADERS)
-        if resp.status_code == 429:
-            if attempt == retries:
-                resp.raise_for_status()
-            time.sleep(backoff_sec * attempt)
-            continue
+        try:
+            resp = requests.get(url, params=params, timeout=timeout, headers=DEFAULT_HEADERS)
+            if resp.status_code == 429:
+                if attempt == retries:
+                    resp.raise_for_status()
+                time.sleep(backoff_sec * attempt)
+                continue
 
-        resp.raise_for_status()
-        payload = resp.json()
-        break
+            resp.raise_for_status()
+            payload = resp.json()
+            break
+        except requests.RequestException:
+            if attempt == retries:
+                return []
+            time.sleep(backoff_sec * attempt)
 
     if payload is None:
         return []
@@ -154,9 +159,15 @@ def main() -> None:
         for code in codes:
             start_ts = resolve_start_timestamp(conn, args.table, code)
             rows = fetch_prices(code, start_ts, end_ts, args.timeout)
-            total_rows += len(rows)
+            fetched_count = len(rows)
+            total_rows += fetched_count
             if rows:
-                inserted_rows += insert_rows(conn, args.table, rows)
+                inserted = insert_rows(conn, args.table, rows)
+            else:
+                inserted = 0
+            inserted_rows += inserted
+            print(f"{code} 取得レコード数: {fetched_count}")
+            print(f"{code} インサートレコード数: {inserted}")
 
         print(f"対象銘柄数: {total_codes}")
         print(f"取得レコード数: {total_rows}")
