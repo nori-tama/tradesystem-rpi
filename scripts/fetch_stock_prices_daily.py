@@ -2,6 +2,7 @@
 """日足株価を取得してMySQLに格納する。"""
 
 import argparse
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Iterable, List, Optional, Tuple
 
@@ -11,6 +12,9 @@ import requests
 from db_common import get_connection
 
 YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+DEFAULT_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; tradesystem-rpi/1.0)"
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -67,9 +71,23 @@ def fetch_prices(
         "events": "history",
     }
     url = YAHOO_CHART_URL.format(symbol=to_yahoo_symbol(code))
-    resp = requests.get(url, params=params, timeout=timeout)
-    resp.raise_for_status()
-    payload = resp.json()
+    retries = 3
+    backoff_sec = 2
+    payload = None
+    for attempt in range(1, retries + 1):
+        resp = requests.get(url, params=params, timeout=timeout, headers=DEFAULT_HEADERS)
+        if resp.status_code == 429:
+            if attempt == retries:
+                resp.raise_for_status()
+            time.sleep(backoff_sec * attempt)
+            continue
+
+        resp.raise_for_status()
+        payload = resp.json()
+        break
+
+    if payload is None:
+        return []
 
     result = payload.get("chart", {}).get("result")
     if not result:

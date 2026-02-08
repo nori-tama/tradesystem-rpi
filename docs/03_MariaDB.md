@@ -53,6 +53,7 @@ mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS tradesystem DEFAULT CHARACTER
 ## 6. DDL適用（本プロジェクト）
 ```bash
 mysql -u root -p tradesystem < ~/tradesystem-rpi/ddl/tse_listings.sql
+mysql -u root -p tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily.sql
 ```
 
 ## 7. 動作確認
