@@ -22,9 +22,30 @@ h1 {
 table {
     border-collapse: collapse;
     width: 100%;
+    table-layout: fixed;
     background: #ffffff;
     border: 1px solid var(--border);
     box-shadow: 0 8px 24px rgba(15, 46, 84, 0.08);
+}
+
+th:nth-child(1),
+td:nth-child(1) {
+    width: 12%;
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+    width: 28%;
+}
+
+th:nth-child(3),
+td:nth-child(3) {
+    width: 35%;
+}
+
+th:nth-child(4),
+td:nth-child(4) {
+    width: 25%;
 }
 
 th,

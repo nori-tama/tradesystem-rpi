@@ -8,38 +8,59 @@
 </head>
 <body>
     <h1>東証上場銘柄一覧</h1>
-    <div class="meta">件数: {{ listings|length }}</div>
+    <form method="get" class="filters">
+        <label for="market">市場・商品区分</label>
+        <select id="market" name="market">
+            <option value="">すべて</option>
+            {% for market in markets %}
+                <option value="{{ market }}" {% if market == selected_market %}selected{% endif %}>{{ market }}</option>
+            {% endfor %}
+        </select>
+        <label for="sector33">33業種</label>
+        <select id="sector33" name="sector33">
+            <option value="">すべて</option>
+            {% for sector33 in sector33_names %}
+                <option value="{{ sector33 }}" {% if sector33 == selected_sector33 %}selected{% endif %}>{{ sector33 }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">検索</button>
+    </form>
+    <div class="meta">件数: {{ page_obj.paginator.count }} ({{ page_obj.number }} / {{ page_obj.paginator.num_pages }}ページ)</div>
     <table>
         <thead>
             <tr>
-                <th>基準日</th>
                 <th>銘柄コード</th>
                 <th>銘柄名</th>
                 <th>市場・商品区分</th>
                 <th>33業種</th>
-                <th>17業種</th>
-                <th>規模</th>
-                <th>更新日時</th>
             </tr>
         </thead>
         <tbody>
             {% for item in listings %}
             <tr>
-                <td>{{ item.listing_date }}</td>
                 <td>{{ item.code }}</td>
                 <td>{{ item.name }}</td>
                 <td>{{ item.market }}</td>
                 <td>{{ item.sector33_code }} - {{ item.sector33_name }}</td>
-                <td>{{ item.sector17_code }} - {{ item.sector17_name }}</td>
-                <td>{{ item.scale_code }} - {{ item.scale_name }}</td>
-                <td>{{ item.updated_at }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8">銘柄データがありません。</td>
+                <td colspan="4">銘柄データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="button" href="?page={{ page_obj.previous_page_number }}&market={{ selected_market }}&sector33={{ selected_sector33 }}">前ページ</a>
+        {% else %}
+            <span class="button disabled">前ページ</span>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a class="button" href="?page={{ page_obj.next_page_number }}&market={{ selected_market }}&sector33={{ selected_sector33 }}">次ページ</a>
+        {% else %}
+            <span class="button disabled">次ページ</span>
+        {% endif %}
+    </div>
 </body>
 </html>
