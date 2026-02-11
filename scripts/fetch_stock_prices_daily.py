@@ -9,7 +9,8 @@ from typing import Iterable, List, Optional, Tuple
 import pymysql
 import requests
 
-from db_common import get_connection
+from common.db import get_connection
+from common.logger import get_logger
 
 YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 DEFAULT_HEADERS = {
@@ -147,6 +148,7 @@ def insert_rows(
 
 def main() -> None:
     args = parse_args()
+    logger = get_logger("fetch_stock_prices_daily")
     jst = timezone(timedelta(hours=9))
     today_jst = datetime.now(tz=jst).date()
     end_ts = int(
@@ -162,6 +164,9 @@ def main() -> None:
 
         for code in codes:
             start_ts = resolve_start_timestamp(conn, args.table, code)
+            if start_ts >= end_ts:
+                logger.info("%s データ取得済みのためスキップ", code)
+                continue
             rows = fetch_prices(code, start_ts, end_ts, args.timeout)
             fetched_count = len(rows)
             total_rows += fetched_count
@@ -170,12 +175,12 @@ def main() -> None:
             else:
                 inserted = 0
             inserted_rows += inserted
-            print(f"{code} 取得レコード数: {fetched_count}")
-            print(f"{code} インサートレコード数: {inserted}")
+            logger.info("%s 取得レコード数: %s", code, fetched_count)
+            logger.info("%s インサートレコード数: %s", code, inserted)
 
-        print(f"対象銘柄数: {total_codes}")
-        print(f"取得レコード数: {total_rows}")
-        print(f"インサートレコード数: {inserted_rows}")
+        logger.info("対象銘柄数: %s", total_codes)
+        logger.info("取得レコード数: %s", total_rows)
+        logger.info("インサートレコード数: %s", inserted_rows)
     finally:
         conn.close()
 

@@ -10,7 +10,7 @@ from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
 import pymysql
 import requests
 
-from db_common import get_connection
+from common.db import get_connection
 from common.logger import get_logger
 
 JPX_URL = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"

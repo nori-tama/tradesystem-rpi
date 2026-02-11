@@ -1,3 +1,4 @@
 scripts/__pycache__/
+scripts/common/__pycache__/
 django/tradesystem_web/__pycache__/
 logs/
