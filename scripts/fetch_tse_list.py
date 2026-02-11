@@ -11,6 +11,7 @@ import pymysql
 import requests
 
 from db_common import get_connection
+from common.logger import get_logger
 
 JPX_URL = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
 
@@ -131,6 +132,7 @@ def upsert_rows(conn: pymysql.Connection, table: str, df: pd.DataFrame) -> int:
 
 def main() -> None:
     args = parse_args()
+    logger = get_logger("fetch_tse_list")
     raw_df = fetch_dataframe(args.timeout)
     total_count = len(raw_df)
     df = normalize_dataframe(raw_df)
@@ -140,9 +142,9 @@ def main() -> None:
 
     try:
         inserted = upsert_rows(conn, args.table, df)
-        print(f"総レコード数: {total_count}")
-        print(f"該当レコード数: {matched_count}")
-        print(f"インサートレコード数: {inserted}")
+        logger.info("総レコード数: %s", total_count)
+        logger.info("該当レコード数: %s", matched_count)
+        logger.info("インサートレコード数: %s", inserted)
     finally:
         conn.close()
 

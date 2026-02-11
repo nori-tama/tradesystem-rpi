@@ -1,2 +1,3 @@
 scripts/__pycache__/
 django/tradesystem_web/__pycache__/
+logs/

@@ -3,23 +3,23 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>TSE Listings</title>
+    <title>東証上場銘柄一覧</title>
     <link rel="stylesheet" href="{% static 'base.css' %}">
 </head>
 <body>
-    <h1>TSE Listings</h1>
-    <div class="meta">Total: {{ listings|length }}</div>
+    <h1>東証上場銘柄一覧</h1>
+    <div class="meta">件数: {{ listings|length }}</div>
     <table>
         <thead>
             <tr>
-                <th>Listing Date</th>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Market</th>
-                <th>Sector 33</th>
-                <th>Sector 17</th>
-                <th>Scale</th>
-                <th>Updated At</th>
+                <th>基準日</th>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>市場・商品区分</th>
+                <th>33業種</th>
+                <th>17業種</th>
+                <th>規模</th>
+                <th>更新日時</th>
             </tr>
         </thead>
         <tbody>
@@ -36,7 +36,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8">No listings found.</td>
+                <td colspan="8">銘柄データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>

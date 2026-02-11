@@ -147,7 +147,11 @@ def insert_rows(
 
 def main() -> None:
     args = parse_args()
-    end_ts = int(datetime.now(tz=timezone.utc).timestamp())
+    jst = timezone(timedelta(hours=9))
+    today_jst = datetime.now(tz=jst).date()
+    end_ts = int(
+        datetime.combine(today_jst, datetime.min.time(), tzinfo=jst).timestamp()
+    )
 
     conn = get_connection()
     try:
