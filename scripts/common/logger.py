@@ -7,11 +7,14 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+LOG_LEVEL = logging.DEBUG
 
-def get_logger(script_name: str, level: int = logging.INFO) -> logging.Logger:
+
+def get_logger(script_name: str, level: int = LOG_LEVEL) -> logging.Logger:
     """Return a logger that logs to stdout and logs/<script_name>.log."""
     logger = logging.getLogger(script_name)
     if logger.handlers:
+        logger.setLevel(level)
         return logger
 
     logger.setLevel(level)
