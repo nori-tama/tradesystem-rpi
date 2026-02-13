@@ -45,21 +45,35 @@ sudo systemctl restart mariadb
 mysql -u root -p -h 192.168.0.10
 ```
 
+### 4.4 パスワード入力の省略（~/.my.cnf）
+`~/.my.cnf` を作成して認証情報を保存すると、`-p` の入力を省略できます。
+
+```bash
+cat <<'EOF' > ~/.my.cnf
+[client]
+user=root
+password=password
+EOF
+chmod 600 ~/.my.cnf
+```
+
+以降の `mysql` コマンドは `-p` を外して実行します。
+
 ## 5. DB作成
 ```bash
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS tradesystem DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS tradesystem DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 ```
 
 ## 6. DDL適用（本プロジェクト）
 ```bash
-mysql -u root -p tradesystem < ~/tradesystem-rpi/ddl/tse_listings.sql
-mysql -u root -p tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily.sql
-mysql -u root -p tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_ma.sql
+mysql -u root tradesystem < ~/tradesystem-rpi/ddl/tse_listings.sql
+mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily.sql
+mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_ma.sql
 ```
 
 ## 7. 動作確認
 ```bash
-mysql -u root -p tradesystem -e "SHOW TABLES;"
+mysql -u root tradesystem -e "SHOW TABLES;"
 ```
 
 ## 8. トラブルシュート

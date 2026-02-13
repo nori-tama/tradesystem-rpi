@@ -2,6 +2,7 @@
 """Calculate moving averages from daily stock prices and store to MySQL."""
 
 import argparse
+from datetime import timedelta
 from collections import deque
 from typing import Iterable, List, Optional, Sequence, Tuple
 
@@ -38,16 +39,31 @@ def resolve_codes(conn: pymysql.Connection, codes_arg: str) -> List[str]:
 
 
 def fetch_prices(
-    conn: pymysql.Connection, table: str, code: str
+    conn: pymysql.Connection,
+    table: str,
+    code: str,
+    start_date: Optional,
 ) -> List[Tuple]:
-    sql = f"""
-    SELECT trade_date, `close`
-    FROM `{table}`
-    WHERE code = %s
-    ORDER BY trade_date
-    """
+    if start_date is None:
+        sql = f"""
+        SELECT trade_date, `close`
+        FROM `{table}`
+        WHERE code = %s
+        ORDER BY trade_date
+        """
+        params = (code,)
+    else:
+        sql = f"""
+        SELECT trade_date, `close`
+        FROM `{table}`
+        WHERE code = %s
+          AND trade_date >= %s
+        ORDER BY trade_date
+        """
+        params = (code, start_date)
+
     with conn.cursor() as cursor:
-        cursor.execute(sql, (code,))
+        cursor.execute(sql, params)
         return list(cursor.fetchall())
 
 
@@ -134,14 +150,28 @@ def main() -> None:
         inserted_rows = 0
 
         for code in codes:
-            price_rows = fetch_prices(conn, args.source_table, code)
+            latest_ma_date = fetch_latest_ma_date(
+                conn, args.target_table, code
+            )
+            start_date = None
+            if latest_ma_date is not None:
+                days_back = max(args.window_long - 1, 0)
+                start_date = latest_ma_date - timedelta(days=days_back)
+
+            price_rows = fetch_prices(
+                conn, args.source_table, code, start_date
+            )
             if not price_rows:
                 logger.info("%s 価格データなし", code)
                 continue
 
-            latest_ma_date = fetch_latest_ma_date(
-                conn, args.target_table, code
+            logger.info(
+                "%s 取得レコード数: %s (開始日: %s)",
+                code,
+                len(price_rows),
+                start_date if start_date is not None else "全期間",
             )
+
             rows = compute_moving_averages(
                 code, price_rows, args.window_short, args.window_long
             )

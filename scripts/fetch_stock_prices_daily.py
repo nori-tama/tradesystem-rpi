@@ -19,6 +19,7 @@ DEFAULT_HEADERS = {
 
 
 def parse_args() -> argparse.Namespace:
+    # CLI引数を解析
     parser = argparse.ArgumentParser(
         description="日足株価を取得してMySQLに格納する。"
     )
@@ -32,6 +33,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_codes(conn: pymysql.Connection, codes_arg: str) -> List[str]:
+    # 対象銘柄コードを決定（指定がなければDBから取得）
     if codes_arg:
         return [code.strip() for code in codes_arg.split(",") if code.strip()]
 
@@ -42,6 +44,7 @@ def resolve_codes(conn: pymysql.Connection, codes_arg: str) -> List[str]:
 
 
 def resolve_start_timestamp(conn: pymysql.Connection, table: str, code: str) -> int:
+    # 既存データの最終日を起点に取得開始日時を求める
     sql = f"SELECT MAX(trade_date) FROM `{table}` WHERE code = %s"
     with conn.cursor() as cursor:
         cursor.execute(sql, (code,))
@@ -49,6 +52,7 @@ def resolve_start_timestamp(conn: pymysql.Connection, table: str, code: str) -> 
         max_date = result[0] if result else None
 
     if max_date:
+        # 既存データの翌日から取得して重複を避ける
         next_day = max_date + timedelta(days=1)
         return int(
             datetime.combine(next_day, datetime.min.time(), tzinfo=timezone.utc).timestamp()
@@ -58,6 +62,7 @@ def resolve_start_timestamp(conn: pymysql.Connection, table: str, code: str) -> 
 
 
 def to_yahoo_symbol(code: str) -> str:
+    # Yahoo Finance用のティッカーに変換
     return f"{code}.T"
 
 
@@ -66,7 +71,9 @@ def fetch_prices(
     start_ts: int,
     end_ts: int,
     timeout: int,
+    logger,
 ) -> List[Tuple]:
+    # Yahoo Financeから日足データを取得して整形
     params = {
         "period1": start_ts,
         "period2": end_ts,
@@ -74,22 +81,27 @@ def fetch_prices(
         "events": "history",
     }
     url = YAHOO_CHART_URL.format(symbol=to_yahoo_symbol(code))
+    # 429/通信エラー時は指数バックオフで再試行し、失敗時は空配列を返す
     retries = 3
     backoff_sec = 2
     payload = None
     for attempt in range(1, retries + 1):
         try:
+            logger.debug("%s データ取得開始", code)
             resp = requests.get(url, params=params, timeout=timeout, headers=DEFAULT_HEADERS)
             if resp.status_code == 429:
+                logger.warning("%s HTTP 429 取得制限のため再試行 (%s/%s)", code, attempt, retries)
                 if attempt == retries:
                     resp.raise_for_status()
                 time.sleep(backoff_sec * attempt)
                 continue
 
+            logger.debug("%s データ取得完了（ステータスコード: %s）", code, resp.status_code)
             resp.raise_for_status()
             payload = resp.json()
             break
         except requests.RequestException:
+            logger.warning("%s 通信エラーのため再試行 (%s/%s)", code, attempt, retries)
             if attempt == retries:
                 return []
             time.sleep(backoff_sec * attempt)
@@ -134,6 +146,7 @@ def fetch_prices(
 def insert_rows(
     conn: pymysql.Connection, table: str, rows: Iterable[Tuple]
 ) -> int:
+    # 取得した行をDBへ一括登録（重複は無視）
     sql = f"""
     INSERT IGNORE INTO `{table}`
     (`trade_date`, `code`, `open`, `high`, `low`, `close`, `volume`)
@@ -147,6 +160,7 @@ def insert_rows(
 
 
 def main() -> None:
+    # 全銘柄の取得・保存を実行
     args = parse_args()
     logger = get_logger("fetch_stock_prices_daily")
     jst = timezone(timedelta(hours=9))
@@ -167,7 +181,7 @@ def main() -> None:
             if start_ts >= end_ts:
                 logger.info("%s データ取得済みのためスキップ", code)
                 continue
-            rows = fetch_prices(code, start_ts, end_ts, args.timeout)
+            rows = fetch_prices(code, start_ts, end_ts, args.timeout, logger)
             fetched_count = len(rows)
             total_rows += fetched_count
             if rows:

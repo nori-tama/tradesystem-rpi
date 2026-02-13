@@ -9,5 +9,6 @@ CREATE TABLE `stock_prices_daily` (
   `volume` BIGINT NOT NULL,
   `ingested` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`trade_date`, `code`),
-  KEY `idx_stock_prices_daily_code` (`code`)
+  KEY `idx_stock_prices_daily_code` (`code`),
+  KEY `idx_stock_prices_daily_code_date` (`code`, `trade_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
