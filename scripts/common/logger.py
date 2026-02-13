@@ -21,7 +21,7 @@ def get_logger(script_name: str, level: int = LOG_LEVEL) -> logging.Logger:
     logger.propagate = False
 
     fmt = logging.Formatter(
-        fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
+        fmt="%(asctime)s.%(msecs)03d %(levelname)-6s %(name)s %(message)s",
         datefmt="%Y/%m/%d %H:%M:%S",
     )
 
