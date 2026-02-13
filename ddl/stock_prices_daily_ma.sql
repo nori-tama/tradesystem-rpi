@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS stock_prices_daily_ma (
+    trade_date DATE NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    ma5 DECIMAL(15,6),
+    ma25 DECIMAL(15,6),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (trade_date, code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
