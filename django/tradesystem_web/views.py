@@ -77,3 +77,94 @@ def tse_listings_list(request):
             'selected_sector33': selected_sector33 or "",
         },
     )
+
+
+def stock_price_chart(request, code):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT code, name, market
+            FROM tse_listings
+            WHERE code = %s
+            LIMIT 1
+            """,
+            [code],
+        )
+        listing_row = cursor.fetchone()
+
+        cursor.execute(
+            """
+            SELECT
+                t.trade_date,
+                t.open,
+                t.high,
+                t.low,
+                t.close,
+                t.ma5,
+                t.ma25
+            FROM (
+                SELECT
+                    d.trade_date,
+                    d.open,
+                    d.high,
+                    d.low,
+                    d.close,
+                    m.ma5,
+                    m.ma25
+                FROM stock_prices_daily d
+                LEFT JOIN stock_prices_daily_ma m
+                  ON m.code = d.code
+                 AND m.trade_date = d.trade_date
+                WHERE d.code = %s
+                ORDER BY d.trade_date DESC
+                LIMIT 60
+            ) t
+            ORDER BY t.trade_date
+            """,
+            [code],
+        )
+        rows = cursor.fetchall()
+
+    listing = {
+        'code': code,
+        'name': '',
+        'market': '',
+    }
+    if listing_row:
+        listing = {
+            'code': listing_row[0],
+            'name': listing_row[1],
+            'market': listing_row[2],
+        }
+
+    chart_labels = []
+    open_values = []
+    high_values = []
+    low_values = []
+    close_values = []
+    ma5_values = []
+    ma25_values = []
+
+    for trade_date, open_price, high_price, low_price, close_price, ma5, ma25 in rows:
+        chart_labels.append(trade_date.strftime('%Y-%m-%d'))
+        open_values.append(float(open_price) if open_price is not None else None)
+        high_values.append(float(high_price) if high_price is not None else None)
+        low_values.append(float(low_price) if low_price is not None else None)
+        close_values.append(float(close_price) if close_price is not None else None)
+        ma5_values.append(float(ma5) if ma5 is not None else None)
+        ma25_values.append(float(ma25) if ma25 is not None else None)
+
+    return render(
+        request,
+        'stock_price_chart.html',
+        {
+            'listing': listing,
+            'chart_labels': chart_labels,
+            'open_values': open_values,
+            'high_values': high_values,
+            'low_values': low_values,
+            'close_values': close_values,
+            'ma5_values': ma5_values,
+            'ma25_values': ma25_values,
+        },
+    )

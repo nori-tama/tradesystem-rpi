@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>株価グラフ</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260213-2">
+</head>
+<body>
+    <h1>株価グラフ</h1>
+    <div class="chart-meta">
+        <div>銘柄コード: {{ listing.code }}</div>
+        <div>銘柄名: {{ listing.name|default:"-" }}</div>
+        <div>市場・商品区分: {{ listing.market|default:"-" }}</div>
+        <div>対象期間: 最新60日</div>
+    </div>
+
+    {% if chart_labels %}
+    <div id="priceChart" class="chart-panel"></div>
+    {% else %}
+    <div class="meta">株価データがありません。</div>
+    {% endif %}
+
+    <div class="pagination">
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+
+    {{ chart_labels|json_script:"chart-labels" }}
+    {{ open_values|json_script:"chart-open" }}
+    {{ high_values|json_script:"chart-high" }}
+    {{ low_values|json_script:"chart-low" }}
+    {{ close_values|json_script:"chart-close" }}
+    {{ ma5_values|json_script:"chart-ma5" }}
+    {{ ma25_values|json_script:"chart-ma25" }}
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script>
+        const labelsEl = document.getElementById('chart-labels');
+        if (labelsEl) {
+            const labels = JSON.parse(labelsEl.textContent);
+            if (labels.length > 0) {
+                const rootStyle = getComputedStyle(document.documentElement);
+                const blue700 = rootStyle.getPropertyValue('--blue-700').trim();
+                const blue500 = rootStyle.getPropertyValue('--blue-500').trim();
+                const blue100 = rootStyle.getPropertyValue('--blue-100').trim();
+                const blue900 = rootStyle.getPropertyValue('--blue-900').trim();
+                const riseRed = '#d32f2f';
+                const ma5Color = rootStyle.getPropertyValue('--ma5-color').trim();
+                const ma25Color = rootStyle.getPropertyValue('--ma25-color').trim();
+                const openValues = JSON.parse(document.getElementById('chart-open').textContent);
+                const highValues = JSON.parse(document.getElementById('chart-high').textContent);
+                const lowValues = JSON.parse(document.getElementById('chart-low').textContent);
+                const closeValues = JSON.parse(document.getElementById('chart-close').textContent);
+                const ma5Values = JSON.parse(document.getElementById('chart-ma5').textContent);
+                const ma25Values = JSON.parse(document.getElementById('chart-ma25').textContent);
+                const mondayTickLabels = labels.filter((label) => {
+                    const parts = label.split('-');
+                    if (parts.length !== 3) {
+                        return false;
+                    }
+                    const year = Number(parts[0]);
+                    const month = Number(parts[1]) - 1;
+                    const day = Number(parts[2]);
+                    const date = new Date(year, month, day);
+                    return date.getDay() === 1;
+                });
+
+                const traces = [
+                    {
+                        type: 'candlestick',
+                        x: labels,
+                        open: openValues,
+                        high: highValues,
+                        low: lowValues,
+                        close: closeValues,
+                        name: 'ローソク足',
+                        increasing: {
+                            line: { color: riseRed, width: 1 },
+                            fillcolor: riseRed,
+                        },
+                        decreasing: {
+                            line: { color: blue700, width: 1 },
+                            fillcolor: blue500,
+                        },
+                        whiskerwidth: 0.3,
+                        opacity: 1,
+                    },
+                    {
+                        type: 'scatter',
+                        mode: 'lines',
+                        x: labels,
+                        y: ma5Values,
+                        name: '5日移動平均',
+                        line: {
+                            color: ma5Color,
+                            width: 2,
+                        },
+                    },
+                    {
+                        type: 'scatter',
+                        mode: 'lines',
+                        x: labels,
+                        y: ma25Values,
+                        name: '25日移動平均',
+                        line: {
+                            color: ma25Color,
+                            width: 2,
+                        },
+                    },
+                ];
+
+                const layout = {
+                    margin: { l: 55, r: 20, t: 25, b: 45 },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    xaxis: {
+                        type: 'date',
+                        tickmode: 'array',
+                        tickvals: mondayTickLabels,
+                        ticktext: mondayTickLabels,
+                        tickformat: '%Y-%m-%d',
+                        rangeslider: { visible: false },
+                    },
+                    yaxis: {
+                        fixedrange: false,
+                    },
+                    legend: {
+                        orientation: 'h',
+                    },
+                };
+
+                const config = {
+                    responsive: true,
+                    displaylogo: false,
+                };
+
+                Plotly.newPlot('priceChart', traces, layout, config);
+            }
+        }
+    </script>
+</body>
+</html>

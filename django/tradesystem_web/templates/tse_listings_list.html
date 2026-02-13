@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>東証上場銘柄一覧</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}">
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260213-1">
 </head>
 <body>
     <h1>東証上場銘柄一覧</h1>
@@ -33,6 +33,7 @@
                 <th>銘柄名</th>
                 <th>市場・商品区分</th>
                 <th>33業種</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody>
@@ -42,10 +43,11 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.market }}</td>
                 <td>{{ item.sector33_code }} - {{ item.sector33_name }}</td>
+                <td><a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a></td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4">銘柄データがありません。</td>
+                <td colspan="5">銘柄データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>
