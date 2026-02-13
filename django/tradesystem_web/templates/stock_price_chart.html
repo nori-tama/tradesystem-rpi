@@ -12,7 +12,7 @@
         <div>銘柄コード: {{ listing.code }}</div>
         <div>銘柄名: {{ listing.name|default:"-" }}</div>
         <div>市場・商品区分: {{ listing.market|default:"-" }}</div>
-        <div>対象期間: 最新60日</div>
+        <div>対象期間: 最新100日</div>
     </div>
 
     {% if chart_labels %}
@@ -126,6 +126,10 @@
                     },
                     legend: {
                         orientation: 'h',
+                        x: 1,
+                        y: 1,
+                        xanchor: 'right',
+                        yanchor: 'top',
                     },
                 };
 

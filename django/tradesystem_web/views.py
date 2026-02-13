@@ -117,7 +117,7 @@ def stock_price_chart(request, code):
                  AND m.trade_date = d.trade_date
                 WHERE d.code = %s
                 ORDER BY d.trade_date DESC
-                LIMIT 60
+                LIMIT 100
             ) t
             ORDER BY t.trade_date
             """,
