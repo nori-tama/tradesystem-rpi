@@ -166,7 +166,7 @@ def main() -> None:
                 continue
 
             logger.info(
-                "%s 取得レコード数: %s (開始日: %s)",
+                "%s 取得レコード数: %5d (開始日: %s)",
                 code,
                 len(price_rows),
                 start_date if start_date is not None else "全期間",
@@ -183,8 +183,8 @@ def main() -> None:
             else:
                 inserted = 0
             inserted_rows += inserted
-            logger.info("%s 計算レコード数: %s", code, len(rows))
-            logger.info("%s インサートレコード数: %s", code, inserted)
+            logger.info("%s 計算レコード数: %5d", code, len(rows))
+            logger.info("%s インサートレコード数: %5d", code, inserted)
 
         logger.info("対象銘柄数: %s", total_codes)
         logger.info("計算レコード数: %s", total_rows)

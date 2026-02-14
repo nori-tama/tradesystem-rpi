@@ -189,8 +189,8 @@ def main() -> None:
             else:
                 inserted = 0
             inserted_rows += inserted
-            logger.info("%s 取得レコード数: %s", code, fetched_count)
-            logger.info("%s インサートレコード数: %s", code, inserted)
+            logger.info("%s 取得レコード数: %5d", code, fetched_count)
+            logger.info("%s インサートレコード数: %5d", code, inserted)
 
         logger.info("対象銘柄数: %s", total_codes)
         logger.info("取得レコード数: %s", total_rows)

@@ -168,11 +168,11 @@ def main() -> None:
             else:
                 inserted = 0
             inserted_rows += inserted
-            logger.info("%s RSI計算: %s件 (挿入: %s)", code, len(rows), inserted)
+            logger.info("%s RSI計算: %5d件 (挿入: %5d)", code, len(rows), inserted)
 
-        logger.info("対象銘柄数: %s", total_codes)
-        logger.info("計算レコード数: %s", total_rows)
-        logger.info("インサートレコード数: %s", inserted_rows)
+        logger.info("対象銘柄数: %5d", total_codes)
+        logger.info("計算レコード数: %5d", total_rows)
+        logger.info("インサートレコード数: %5d", inserted_rows)
     finally:
         conn.close()
 
