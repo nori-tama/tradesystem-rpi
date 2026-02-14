@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('tse_listings/', views.tse_listings_list, name='tse_listings_list'),
     path('stocks/<str:code>/chart/', views.stock_price_chart, name='stock_price_chart'),
+    path('stocks/<str:code>/rsi/', views.stock_rsi_chart, name='stock_rsi_chart'),
     path('rankings/ma-estimate/', views.ma_estimate_rankings, name='ma_estimate_rankings'),
 ]

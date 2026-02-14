@@ -22,6 +22,7 @@
     {% endif %}
 
     <div class="pagination">
+        <a class="button" href="{% url 'stock_rsi_chart' listing.code %}">RSIグラフへ</a>
         <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
     </div>
 

@@ -47,7 +47,11 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.market }}</td>
                 <td>{{ item.sector33_code }} - {{ item.sector33_name }}</td>
-                <td><a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a></td>
+                <td>
+                    <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                    /
+                    <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}">RSIグラフ</a>
+                </td>
             </tr>
             {% empty %}
             <tr>

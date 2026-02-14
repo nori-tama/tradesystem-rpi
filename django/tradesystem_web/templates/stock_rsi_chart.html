@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>RSI分析グラフ</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
+</head>
+<body>
+    <h1>RSI分析グラフ</h1>
+    <div class="chart-meta">
+        <div>銘柄コード: {{ listing.code }}</div>
+        <div>銘柄名: {{ listing.name|default:"-" }}</div>
+        <div>市場・商品区分: {{ listing.market|default:"-" }}</div>
+        <div>RSI期間: {{ rsi_window }}日</div>
+        <div>対象期間: 最新100日</div>
+    </div>
+
+    <form method="get" class="filters">
+        <label for="window">RSI期間</label>
+        <select id="window" name="window">
+            <option value="14" {% if rsi_window == 14 %}selected{% endif %}>14日</option>
+            <option value="21" {% if rsi_window == 21 %}selected{% endif %}>21日</option>
+            <option value="28" {% if rsi_window == 28 %}selected{% endif %}>28日</option>
+        </select>
+        <button type="submit">更新</button>
+    </form>
+
+    {% if price_chart_labels or chart_labels %}
+    <div id="priceChart" class="chart-panel"></div>
+    {% else %}
+    <div class="meta">株価またはRSIデータがありません。</div>
+    {% endif %}
+
+    <div class="pagination">
+        <a class="button" href="{% url 'stock_price_chart' listing.code %}">株価グラフへ</a>
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+
+    {{ price_chart_labels|json_script:"price-chart-labels" }}
+    {{ open_values|json_script:"price-chart-open" }}
+    {{ high_values|json_script:"price-chart-high" }}
+    {{ low_values|json_script:"price-chart-low" }}
+    {{ close_values|json_script:"price-chart-close" }}
+    {{ monday_tick_labels|json_script:"price-chart-monday-ticks" }}
+    {{ non_business_day_labels|json_script:"price-chart-non-business-days" }}
+    {{ missing_plot_day_labels|json_script:"price-chart-missing-plot-days" }}
+
+    {{ chart_labels|json_script:"rsi-chart-labels" }}
+    {{ rsi_values|json_script:"rsi-chart-values" }}
+    {{ overbought_values|json_script:"rsi-overbought-values" }}
+    {{ oversold_values|json_script:"rsi-oversold-values" }}
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script>
+        const rootStyle = getComputedStyle(document.documentElement);
+        const blue700 = rootStyle.getPropertyValue('--blue-700').trim();
+        const blue500 = rootStyle.getPropertyValue('--blue-500').trim();
+        const blue900 = rootStyle.getPropertyValue('--blue-900').trim();
+        const borderColor = rootStyle.getPropertyValue('--border').trim();
+        const riseRed = '#d32f2f';
+
+        const priceLabels = JSON.parse(document.getElementById('price-chart-labels').textContent);
+        const rsiLabels = JSON.parse(document.getElementById('rsi-chart-labels').textContent);
+        if (priceLabels.length > 0 || rsiLabels.length > 0) {
+            const openValues = JSON.parse(document.getElementById('price-chart-open').textContent);
+            const highValues = JSON.parse(document.getElementById('price-chart-high').textContent);
+            const lowValues = JSON.parse(document.getElementById('price-chart-low').textContent);
+            const closeValues = JSON.parse(document.getElementById('price-chart-close').textContent);
+            const mondayTickLabels = JSON.parse(document.getElementById('price-chart-monday-ticks').textContent);
+            const nonBusinessDays = JSON.parse(document.getElementById('price-chart-non-business-days').textContent);
+            const missingPlotDays = JSON.parse(document.getElementById('price-chart-missing-plot-days').textContent);
+            const rsiValues = JSON.parse(document.getElementById('rsi-chart-values').textContent);
+            const overboughtValues = JSON.parse(document.getElementById('rsi-overbought-values').textContent);
+            const oversoldValues = JSON.parse(document.getElementById('rsi-oversold-values').textContent);
+            const chartPanel = document.getElementById('priceChart');
+            const chartHeight = chartPanel ? chartPanel.clientHeight : 580;
+
+            const traces = [];
+            if (priceLabels.length > 0) {
+                traces.push({
+                    type: 'candlestick',
+                    x: priceLabels,
+                    open: openValues,
+                    high: highValues,
+                    low: lowValues,
+                    close: closeValues,
+                    name: 'ローソク足',
+                    increasing: {
+                        line: { color: riseRed, width: 1 },
+                        fillcolor: riseRed,
+                    },
+                    decreasing: {
+                        line: { color: blue700, width: 1 },
+                        fillcolor: blue500,
+                    },
+                    whiskerwidth: 0.3,
+                    opacity: 1,
+                });
+            }
+
+            if (rsiLabels.length > 0) {
+                traces.push(
+                    {
+                        type: 'scatter',
+                        mode: 'lines',
+                        x: rsiLabels,
+                        y: rsiValues,
+                        yaxis: 'y2',
+                        name: 'RSI',
+                        line: { color: '#2e7d32', width: 2 },
+                    },
+                    {
+                        type: 'scatter',
+                        mode: 'lines',
+                        x: rsiLabels,
+                        y: overboughtValues,
+                        yaxis: 'y2',
+                        name: '買われ過ぎ(70)',
+                        line: { color: '#d32f2f', width: 1.5, dash: 'dot' },
+                    },
+                    {
+                        type: 'scatter',
+                        mode: 'lines',
+                        x: rsiLabels,
+                        y: oversoldValues,
+                        yaxis: 'y2',
+                        name: '売られ過ぎ(30)',
+                        line: { color: '#2e7d32', width: 1.5, dash: 'dot' },
+                    },
+                );
+            }
+
+            const layout = {
+                height: chartHeight,
+                margin: { l: 55, r: 55, t: 25, b: 90 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                xaxis: {
+                    type: 'date',
+                    tickmode: 'array',
+                    tickvals: mondayTickLabels,
+                    ticktext: mondayTickLabels,
+                    tickformat: '%Y-%m-%d',
+                    tickangle: 90,
+                    tickfont: { size: 11 },
+                    showgrid: true,
+                    gridcolor: borderColor,
+                    gridwidth: 1.5,
+                    automargin: true,
+                    rangebreaks: [
+                        { values: nonBusinessDays },
+                        { values: missingPlotDays },
+                    ],
+                    rangeslider: { visible: false },
+                },
+                yaxis: {
+                    title: '株価',
+                    showgrid: true,
+                    gridcolor: blue700,
+                    gridwidth: 1.2,
+                    griddash: 'dot',
+                    fixedrange: false,
+                },
+                yaxis2: {
+                    title: 'RSI',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 100],
+                    dtick: 10,
+                    showgrid: false,
+                    fixedrange: false,
+                },
+                legend: {
+                    orientation: 'h',
+                    bgcolor: '#ffffff',
+                    x: 1,
+                    y: 1,
+                    xanchor: 'right',
+                    yanchor: 'top',
+                },
+            };
+
+            Plotly.newPlot('priceChart', traces, layout, {
+                responsive: true,
+                displaylogo: false,
+            });
+        }
+    </script>
+</body>
+</html>
