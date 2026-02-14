@@ -171,12 +171,32 @@ def stock_price_chart(request, code):
         end_date = rows[-1][0]
         business_days = calculate_exchange_business_days(start_date, end_date)
         business_day_set = set(business_days)
+        chart_day_set = {row[0] for row in rows}
 
-        monday_tick_labels = [
-            day.strftime('%Y-%m-%d')
-            for day in business_days
-            if day.weekday() == 0
-        ]
+        week_start = start_date - timedelta(days=start_date.weekday())
+        while week_start <= end_date:
+            week_end = week_start + timedelta(days=6)
+            label_day = None
+
+            current = week_start
+            while current <= week_end and current <= end_date:
+                if current >= start_date and current in business_day_set and current in chart_day_set:
+                    label_day = current
+                    break
+                current += timedelta(days=1)
+
+            if label_day is None:
+                current = week_start
+                while current <= week_end and current <= end_date:
+                    if current >= start_date and current in business_day_set:
+                        label_day = current
+                        break
+                    current += timedelta(days=1)
+
+            if label_day is not None:
+                monday_tick_labels.append(label_day.strftime('%Y-%m-%d'))
+
+            week_start += timedelta(days=7)
 
         current = start_date
         while current <= end_date:

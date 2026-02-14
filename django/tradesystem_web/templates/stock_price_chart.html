@@ -57,7 +57,6 @@
                 const ma25Values = JSON.parse(document.getElementById('chart-ma25').textContent);
                 const mondayTickLabels = JSON.parse(document.getElementById('chart-monday-ticks').textContent);
                 const nonBusinessDays = JSON.parse(document.getElementById('chart-non-business-days').textContent);
-                const displayTickLabels = mondayTickLabels.filter((_, index) => index % 2 === 0);
                 const chartPanel = document.getElementById('priceChart');
                 const chartHeight = chartPanel ? chartPanel.clientHeight : 480;
 
@@ -113,8 +112,8 @@
                     xaxis: {
                         type: 'date',
                         tickmode: 'array',
-                        tickvals: displayTickLabels,
-                        ticktext: displayTickLabels,
+                        tickvals: mondayTickLabels,
+                        ticktext: mondayTickLabels,
                         tickformat: '%Y-%m-%d',
                         tickangle: 90,
                         tickfont: { size: 11 },
