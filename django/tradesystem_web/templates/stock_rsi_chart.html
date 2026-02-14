@@ -8,13 +8,23 @@
 </head>
 <body>
     <h1>RSI分析グラフ</h1>
-    <div class="chart-meta">
-        <div>銘柄コード: {{ listing.code }}</div>
-        <div>銘柄名: {{ listing.name|default:"-" }}</div>
-        <div>市場・商品区分: {{ listing.market|default:"-" }}</div>
-        <div>RSI期間: {{ rsi_window }}日</div>
-        <div>対象期間: 最新100日</div>
-    </div>
+    <table class="chart-meta">
+        <thead>
+            <tr>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>市場・商品区分</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ listing.code }}</td>
+                <td>{{ listing.name|default:"-" }}</td>
+                <td>{{ listing.market|default:"-" }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="meta">対象期間: 最新100日 / RSI期間: {{ rsi_window }}日</div>
 
     <form method="get" class="filters">
         <label for="window">RSI期間</label>
