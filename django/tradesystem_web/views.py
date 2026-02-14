@@ -156,8 +156,18 @@ def stock_price_chart(request, code):
     ma25_values = []
     monday_tick_labels = []
     non_business_day_labels = []
+    missing_plot_day_labels = []
+    business_day_set = set()
+    filtered_rows = rows
 
-    for trade_date, open_price, high_price, low_price, close_price, ma5, ma25 in rows:
+    if rows:
+        start_date = rows[0][0]
+        end_date = rows[-1][0]
+        business_days = calculate_exchange_business_days(start_date, end_date)
+        business_day_set = set(business_days)
+        filtered_rows = [row for row in rows if row[0] in business_day_set]
+
+    for trade_date, open_price, high_price, low_price, close_price, ma5, ma25 in filtered_rows:
         chart_labels.append(trade_date.strftime('%Y-%m-%d'))
         open_values.append(float(open_price) if open_price is not None else None)
         high_values.append(float(high_price) if high_price is not None else None)
@@ -166,12 +176,10 @@ def stock_price_chart(request, code):
         ma5_values.append(float(ma5) if ma5 is not None else None)
         ma25_values.append(float(ma25) if ma25 is not None else None)
 
-    if rows:
-        start_date = rows[0][0]
-        end_date = rows[-1][0]
-        business_days = calculate_exchange_business_days(start_date, end_date)
-        business_day_set = set(business_days)
-        chart_day_set = {row[0] for row in rows}
+    if filtered_rows:
+        start_date = filtered_rows[0][0]
+        end_date = filtered_rows[-1][0]
+        chart_day_set = {row[0] for row in filtered_rows}
 
         week_start = start_date - timedelta(days=start_date.weekday())
         while week_start <= end_date:
@@ -202,6 +210,8 @@ def stock_price_chart(request, code):
         while current <= end_date:
             if current not in business_day_set:
                 non_business_day_labels.append(current.strftime('%Y-%m-%d'))
+            elif current not in chart_day_set:
+                missing_plot_day_labels.append(current.strftime('%Y-%m-%d'))
             current += timedelta(days=1)
 
     return render(
@@ -218,5 +228,6 @@ def stock_price_chart(request, code):
             'ma25_values': ma25_values,
             'monday_tick_labels': monday_tick_labels,
             'non_business_day_labels': non_business_day_labels,
+            'missing_plot_day_labels': missing_plot_day_labels,
         },
     )

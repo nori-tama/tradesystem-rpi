@@ -34,6 +34,7 @@
     {{ ma25_values|json_script:"chart-ma25" }}
     {{ monday_tick_labels|json_script:"chart-monday-ticks" }}
     {{ non_business_day_labels|json_script:"chart-non-business-days" }}
+    {{ missing_plot_day_labels|json_script:"chart-missing-plot-days" }}
 
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script>
@@ -58,6 +59,7 @@
                 const ma25Values = JSON.parse(document.getElementById('chart-ma25').textContent);
                 const mondayTickLabels = JSON.parse(document.getElementById('chart-monday-ticks').textContent);
                 const nonBusinessDays = JSON.parse(document.getElementById('chart-non-business-days').textContent);
+                const missingPlotDays = JSON.parse(document.getElementById('chart-missing-plot-days').textContent);
                 const chartPanel = document.getElementById('priceChart');
                 const chartHeight = chartPanel ? chartPanel.clientHeight : 480;
 
@@ -124,6 +126,7 @@
                         automargin: true,
                         rangebreaks: [
                             { values: nonBusinessDays },
+                            { values: missingPlotDays },
                         ],
                         rangeslider: { visible: false },
                     },
