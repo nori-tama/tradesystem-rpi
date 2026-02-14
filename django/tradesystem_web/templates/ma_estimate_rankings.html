@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>移動平均 推測騰落率ランキング</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
+    <link rel="stylesheet" href="{% static 'ma_estimate_rankings.css' %}?v=20260214-1">
+</head>
+<body>
+    <h1>移動平均 推測騰落率ランキング</h1>
+    <div class="meta">推測値: (5日移動平均 - 25日移動平均) / 25日移動平均 × 100</div>
+
+    <h2>値上がり率 TOP10</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>順位</th>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>市場・商品区分</th>
+                <th>基準日</th>
+                <th>推測値上がり率(%)</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in rise_top10 %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.code }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.market }}</td>
+                <td>{{ item.trade_date|date:"Y-m-d" }}</td>
+                <td>{{ item.estimate_rate|floatformat:2 }}</td>
+                <td><a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">データがありません。</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>値下がり率 TOP10</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>順位</th>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>市場・商品区分</th>
+                <th>基準日</th>
+                <th>推測値下がり率(%)</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in fall_top10 %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.code }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.market }}</td>
+                <td>{{ item.trade_date|date:"Y-m-d" }}</td>
+                <td>{{ item.estimate_rate|floatformat:2 }}</td>
+                <td><a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">データがありません。</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+</body>
+</html>

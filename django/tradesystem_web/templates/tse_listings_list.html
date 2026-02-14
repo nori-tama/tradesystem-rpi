@@ -4,10 +4,14 @@
 <head>
     <meta charset="utf-8">
     <title>東証上場銘柄一覧</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260213-1">
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
+    <link rel="stylesheet" href="{% static 'tse_listings_list.css' %}?v=20260214-1">
 </head>
 <body>
     <h1>東証上場銘柄一覧</h1>
+    <div class="pagination">
+        <a class="button" href="{% url 'ma_estimate_rankings' %}">移動平均 推測騰落率ランキング</a>
+    </div>
     <form method="get" class="filters">
         <label for="market">市場・商品区分</label>
         <select id="market" name="market">

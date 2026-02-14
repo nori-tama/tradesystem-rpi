@@ -231,3 +231,101 @@ def stock_price_chart(request, code):
             'missing_plot_day_labels': missing_plot_day_labels,
         },
     )
+
+
+def ma_estimate_rankings(request):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                m.code,
+                l.name,
+                l.market,
+                m.trade_date,
+                m.ma5,
+                m.ma25,
+                ((m.ma5 - m.ma25) / m.ma25) * 100 AS estimate_rate
+            FROM stock_prices_daily_ma m
+            INNER JOIN (
+                SELECT code, MAX(trade_date) AS latest_trade_date
+                FROM stock_prices_daily_ma
+                GROUP BY code
+            ) latest
+                ON latest.code = m.code
+               AND latest.latest_trade_date = m.trade_date
+            LEFT JOIN tse_listings l
+                ON l.code = m.code
+            WHERE m.ma5 IS NOT NULL
+              AND m.ma25 IS NOT NULL
+              AND m.ma25 <> 0
+            ORDER BY estimate_rate DESC
+            LIMIT 10
+            """
+        )
+        rise_rows = cursor.fetchall()
+
+        cursor.execute(
+            """
+            SELECT
+                m.code,
+                l.name,
+                l.market,
+                m.trade_date,
+                m.ma5,
+                m.ma25,
+                ((m.ma5 - m.ma25) / m.ma25) * 100 AS estimate_rate
+            FROM stock_prices_daily_ma m
+            INNER JOIN (
+                SELECT code, MAX(trade_date) AS latest_trade_date
+                FROM stock_prices_daily_ma
+                GROUP BY code
+            ) latest
+                ON latest.code = m.code
+               AND latest.latest_trade_date = m.trade_date
+            LEFT JOIN tse_listings l
+                ON l.code = m.code
+            WHERE m.ma5 IS NOT NULL
+              AND m.ma25 IS NOT NULL
+              AND m.ma25 <> 0
+            ORDER BY estimate_rate ASC
+            LIMIT 10
+            """
+        )
+        fall_rows = cursor.fetchall()
+
+    rise_top10 = []
+    for code, name, market, trade_date, ma5, ma25, estimate_rate in rise_rows:
+        rise_top10.append(
+            {
+                'code': code,
+                'name': name or '-',
+                'market': market or '-',
+                'trade_date': trade_date,
+                'ma5': float(ma5),
+                'ma25': float(ma25),
+                'estimate_rate': float(estimate_rate),
+            }
+        )
+
+    fall_top10 = []
+    for code, name, market, trade_date, ma5, ma25, estimate_rate in fall_rows:
+        fall_top10.append(
+            {
+                'code': code,
+                'name': name or '-',
+                'market': market or '-',
+                'trade_date': trade_date,
+                'ma5': float(ma5),
+                'ma25': float(ma25),
+                'estimate_rate': float(estimate_rate),
+            }
+        )
+
+    return render(
+        request,
+        'ma_estimate_rankings.html',
+        {
+            'rise_top10': rise_top10,
+            'fall_top10': fall_top10,
+        },
+    )
