@@ -69,6 +69,7 @@ mysql -u root -e "CREATE DATABASE IF NOT EXISTS tradesystem DEFAULT CHARACTER SE
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/tse_listings.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_ma.sql
+mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_rsi.sql
 ```
 
 ## 7. 動作確認
