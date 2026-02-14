@@ -46,6 +46,7 @@
                 const blue500 = rootStyle.getPropertyValue('--blue-500').trim();
                 const blue100 = rootStyle.getPropertyValue('--blue-100').trim();
                 const blue900 = rootStyle.getPropertyValue('--blue-900').trim();
+                const borderColor = rootStyle.getPropertyValue('--border').trim();
                 const riseRed = '#d32f2f';
                 const ma5Color = rootStyle.getPropertyValue('--ma5-color').trim();
                 const ma25Color = rootStyle.getPropertyValue('--ma25-color').trim();
@@ -117,6 +118,9 @@
                         tickformat: '%Y-%m-%d',
                         tickangle: 90,
                         tickfont: { size: 11 },
+                        showgrid: true,
+                        gridcolor: borderColor,
+                        gridwidth: 1.5,
                         automargin: true,
                         rangebreaks: [
                             { values: nonBusinessDays },
@@ -128,6 +132,7 @@
                     },
                     legend: {
                         orientation: 'h',
+                        bgcolor: '#ffffff',
                         x: 1,
                         y: 1,
                         xanchor: 'right',
