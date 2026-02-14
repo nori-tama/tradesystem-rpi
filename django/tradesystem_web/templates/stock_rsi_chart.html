@@ -88,11 +88,11 @@
                     name: 'ローソク足',
                     increasing: {
                         line: { color: riseRed, width: 1 },
-                        fillcolor: riseRed,
+                        fillcolor: 'rgba(211, 47, 47, 0.65)',
                     },
                     decreasing: {
                         line: { color: blue700, width: 1 },
-                        fillcolor: blue500,
+                        fillcolor: 'rgba(47, 111, 178, 0.65)',
                     },
                     whiskerwidth: 0.3,
                     opacity: 1,
@@ -108,7 +108,7 @@
                         y: rsiValues,
                         yaxis: 'y2',
                         name: 'RSI',
-                        line: { color: '#2e7d32', width: 2 },
+                        line: { color: '#ff8f00', width: 2 },
                     },
                     {
                         type: 'scatter',
@@ -117,7 +117,7 @@
                         y: overboughtValues,
                         yaxis: 'y2',
                         name: '買われ過ぎ(70)',
-                        line: { color: '#d32f2f', width: 1.5, dash: 'dot' },
+                        line: { color: '#d32f2f', width: 1.5 },
                     },
                     {
                         type: 'scatter',
@@ -126,7 +126,7 @@
                         y: oversoldValues,
                         yaxis: 'y2',
                         name: '売られ過ぎ(30)',
-                        line: { color: '#2e7d32', width: 1.5, dash: 'dot' },
+                        line: { color: '#2e7d32', width: 1.5 },
                     },
                 );
             }
