@@ -5,11 +5,27 @@
     <meta charset="utf-8">
     <title>移動平均 推測騰落率ランキング</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
-    <link rel="stylesheet" href="{% static 'ma_estimate_rankings.css' %}?v=20260214-4">
+    <link rel="stylesheet" href="{% static 'ma_estimate_rankings.css' %}?v=20260214-5">
 </head>
 <body>
     <h1>移動平均 推測騰落率ランキング</h1>
     <div class="meta">推測値: (5日移動平均 - 25日移動平均) / 25日移動平均 × 100</div>
+
+    <div class="filter-bar">
+        <form method="get">
+            <label for="market">市場・商品区分</label>
+            <select id="market" name="market">
+                <option value="">全て</option>
+                {% for market in markets %}
+                <option value="{{ market }}" {% if market == selected_market %}selected{% endif %}>{{ market }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">絞り込み</button>
+            {% if selected_market %}
+            <a class="button subtle" href="{% url 'ma_estimate_rankings' %}">クリア</a>
+            {% endif %}
+        </form>
+    </div>
 
     <div class="ranking-grid">
         <section class="ranking-panel">

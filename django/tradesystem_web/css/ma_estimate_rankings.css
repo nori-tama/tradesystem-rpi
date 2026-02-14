@@ -37,6 +37,28 @@ h2 {
     margin-top: 24px;
 }
 
+.filter-bar {
+    margin: 12px 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+.filter-bar form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.filter-bar select {
+    min-width: 200px;
+}
+
+.button.subtle {
+    background: transparent;
+    color: var(--blue-900);
+    border: 1px solid var(--blue-200);
+}
+
 .ranking-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

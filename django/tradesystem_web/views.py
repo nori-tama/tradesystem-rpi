@@ -235,7 +235,19 @@ def stock_price_chart(request, code):
 
 
 def ma_estimate_rankings(request):
+    selected_market = (request.GET.get("market") or "").strip()
+
     with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT DISTINCT market
+            FROM tse_listings
+            WHERE market IS NOT NULL AND market <> ''
+            ORDER BY market
+            """
+        )
+        markets = [row[0] for row in cursor.fetchall()]
+
         cursor.execute("SELECT MAX(trade_date) FROM stock_prices_daily_ma")
         latest_trade_date_row = cursor.fetchone()
 
@@ -247,85 +259,67 @@ def ma_estimate_rankings(request):
             {
                 'rise_top10': [],
                 'fall_top10': [],
+                'markets': markets,
+                'selected_market': selected_market,
             },
         )
 
-    cache_key = f'ma_estimate_rankings:{latest_trade_date}'
+    cache_key = f'ma_estimate_rankings:{latest_trade_date}:market:{selected_market or "all"}'
     cached_context = cache.get(cache_key)
     if cached_context is not None:
         return render(request, 'ma_estimate_rankings.html', cached_context)
 
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
+        base_sql = """
             SELECT
                 m.code,
                 m.trade_date,
                 m.ma5,
                 m.ma25,
-                ((m.ma5 - m.ma25) / m.ma25) * 100 AS estimate_rate
+                ((m.ma5 - m.ma25) / m.ma25) * 100 AS estimate_rate,
+                l.name,
+                l.market
             FROM stock_prices_daily_ma m
+            JOIN (
+                SELECT t.code, t.name, t.market
+                FROM tse_listings t
+                JOIN (
+                    SELECT code, MAX(listing_date) AS latest_listing_date
+                    FROM tse_listings
+                    GROUP BY code
+                ) latest
+                  ON latest.code = t.code
+                 AND latest.latest_listing_date = t.listing_date
+            ) l ON l.code = m.code
             WHERE m.trade_date = %s
               AND m.ma5 IS NOT NULL
               AND m.ma25 IS NOT NULL
               AND m.ma25 <> 0
-            ORDER BY estimate_rate DESC
-            LIMIT 10
-            """,
-            [latest_trade_date],
-        )
+        """
+
+        rise_params = [latest_trade_date]
+        fall_params = [latest_trade_date]
+        if selected_market:
+            base_sql += " AND l.market = %s"
+            rise_params.append(selected_market)
+            fall_params.append(selected_market)
+
+        rise_sql = base_sql + " ORDER BY estimate_rate DESC LIMIT 10"
+        fall_sql = base_sql + " ORDER BY estimate_rate ASC LIMIT 10"
+
+        cursor.execute(rise_sql, rise_params)
         rise_rows = cursor.fetchall()
 
-        cursor.execute(
-            """
-            SELECT
-                m.code,
-                m.trade_date,
-                m.ma5,
-                m.ma25,
-                ((m.ma5 - m.ma25) / m.ma25) * 100 AS estimate_rate
-            FROM stock_prices_daily_ma m
-            WHERE m.trade_date = %s
-              AND m.ma5 IS NOT NULL
-              AND m.ma25 IS NOT NULL
-              AND m.ma25 <> 0
-            ORDER BY estimate_rate ASC
-            LIMIT 10
-            """,
-            [latest_trade_date],
-        )
+        cursor.execute(fall_sql, fall_params)
         fall_rows = cursor.fetchall()
 
-    target_codes = sorted({row[0] for row in rise_rows + fall_rows})
-    listing_map = {}
-    if target_codes:
-        placeholders = ','.join(['%s'] * len(target_codes))
-        with connection.cursor() as cursor:
-            cursor.execute(
-                f"""
-                SELECT code, name, market
-                FROM tse_listings
-                WHERE code IN ({placeholders})
-                ORDER BY code, listing_date DESC
-                """,
-                target_codes,
-            )
-            listing_rows = cursor.fetchall()
-        for code, name, market in listing_rows:
-            if code not in listing_map:
-                listing_map[code] = {
-                    'name': name or '-',
-                    'market': market or '-',
-                }
-
     rise_top10 = []
-    for code, trade_date, ma5, ma25, estimate_rate in rise_rows:
-        listing = listing_map.get(code, {'name': '-', 'market': '-'})
+    for code, trade_date, ma5, ma25, estimate_rate, name, market in rise_rows:
         rise_top10.append(
             {
                 'code': code,
-                'name': listing['name'],
-                'market': listing['market'],
+                'name': name or '-',
+                'market': market or '-',
                 'trade_date': trade_date,
                 'ma5': float(ma5),
                 'ma25': float(ma25),
@@ -334,13 +328,12 @@ def ma_estimate_rankings(request):
         )
 
     fall_top10 = []
-    for code, trade_date, ma5, ma25, estimate_rate in fall_rows:
-        listing = listing_map.get(code, {'name': '-', 'market': '-'})
+    for code, trade_date, ma5, ma25, estimate_rate, name, market in fall_rows:
         fall_top10.append(
             {
                 'code': code,
-                'name': listing['name'],
-                'market': listing['market'],
+                'name': name or '-',
+                'market': market or '-',
                 'trade_date': trade_date,
                 'ma5': float(ma5),
                 'ma25': float(ma25),
@@ -351,6 +344,8 @@ def ma_estimate_rankings(request):
     context = {
         'rise_top10': rise_top10,
         'fall_top10': fall_top10,
+        'markets': markets,
+        'selected_market': selected_market,
     }
     cache.set(cache_key, context, 300)
 
