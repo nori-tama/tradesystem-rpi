@@ -24,7 +24,8 @@ python3 manage.py runserver 192.168.0.10:8000
 sudo tee /etc/systemd/system/tradesystem-django.service > /dev/null <<'EOF'
 [Unit]
 Description=TradeSystem Django Server
-After=network.target
+Requires=mariadb.service
+After=network.target mariadb.service
 
 [Service]
 Type=simple

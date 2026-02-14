@@ -1,6 +1,16 @@
+import sys
+from datetime import timedelta
+from pathlib import Path
+
 from django.core.paginator import Paginator
 from django.db import connection
 from django.shortcuts import render
+
+COMMON_DIR = Path(__file__).resolve().parents[2] / 'scripts' / 'common'
+if str(COMMON_DIR) not in sys.path:
+    sys.path.append(str(COMMON_DIR))
+
+from exchange_calendar import calculate_exchange_business_days
 
 
 def tse_listings_list(request):
@@ -144,6 +154,8 @@ def stock_price_chart(request, code):
     close_values = []
     ma5_values = []
     ma25_values = []
+    monday_tick_labels = []
+    non_business_day_labels = []
 
     for trade_date, open_price, high_price, low_price, close_price, ma5, ma25 in rows:
         chart_labels.append(trade_date.strftime('%Y-%m-%d'))
@@ -153,6 +165,24 @@ def stock_price_chart(request, code):
         close_values.append(float(close_price) if close_price is not None else None)
         ma5_values.append(float(ma5) if ma5 is not None else None)
         ma25_values.append(float(ma25) if ma25 is not None else None)
+
+    if rows:
+        start_date = rows[0][0]
+        end_date = rows[-1][0]
+        business_days = calculate_exchange_business_days(start_date, end_date)
+        business_day_set = set(business_days)
+
+        monday_tick_labels = [
+            day.strftime('%Y-%m-%d')
+            for day in business_days
+            if day.weekday() == 0
+        ]
+
+        current = start_date
+        while current <= end_date:
+            if current not in business_day_set:
+                non_business_day_labels.append(current.strftime('%Y-%m-%d'))
+            current += timedelta(days=1)
 
     return render(
         request,
@@ -166,5 +196,7 @@ def stock_price_chart(request, code):
             'close_values': close_values,
             'ma5_values': ma5_values,
             'ma25_values': ma25_values,
+            'monday_tick_labels': monday_tick_labels,
+            'non_business_day_labels': non_business_day_labels,
         },
     )
