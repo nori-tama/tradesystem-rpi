@@ -5,5 +5,6 @@ CREATE TABLE `stock_prices_daily_ma` (
     ma5 DECIMAL(15,6),
     ma25 DECIMAL(15,6),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (code, trade_date)
+    PRIMARY KEY (code, trade_date),
+    KEY `idx_spdma_trade_date` (trade_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
