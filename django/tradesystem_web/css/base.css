@@ -98,7 +98,7 @@ tbody tr:nth-child(even) {
 }
 
 .chart-panel {
-    height: 620px;
+    height: 580px;
     background: #ffffff;
     border: 1px solid var(--border);
     box-shadow: 0 8px 24px rgba(15, 46, 84, 0.08);

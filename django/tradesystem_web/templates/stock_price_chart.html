@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>株価グラフ</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-1">
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-2">
 </head>
 <body>
     <h1>株価グラフ</h1>
@@ -59,7 +59,7 @@
                 const nonBusinessDays = JSON.parse(document.getElementById('chart-non-business-days').textContent);
                 const displayTickLabels = mondayTickLabels.filter((_, index) => index % 2 === 0);
                 const chartPanel = document.getElementById('priceChart');
-                const chartHeight = chartPanel ? chartPanel.clientHeight : 520;
+                const chartHeight = chartPanel ? chartPanel.clientHeight : 480;
 
                 const traces = [
                     {
