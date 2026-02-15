@@ -2,14 +2,21 @@
 """Forecast stock close prices with ARIMA and store to MySQL."""
 
 import argparse
+import math
+import warnings
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 import pymysql
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 from common.db import get_connection
 from common.exchange_calendar import shift_exchange_business_day
 from common.logger import get_logger
+
+
+PREDICTED_CLOSE_MAX = 999999999.999999
+PREDICTED_CLOSE_MIN = -999999999.999999
 
 
 def parse_args() -> argparse.Namespace:
@@ -79,6 +86,8 @@ def forecast_close_prices(
     horizon: int,
     primary_order: Tuple[int, int, int],
     fallback_order: Tuple[int, int, int],
+    code: str,
+    logger,
 ) -> Tuple[List[float], Tuple[int, int, int], Optional[float]]:
     try_orders = [primary_order]
     if fallback_order != primary_order:
@@ -93,7 +102,28 @@ def forecast_close_prices(
                 enforce_stationarity=False,
                 enforce_invertibility=False,
             )
-            result = model.fit()
+            with warnings.catch_warnings(record=True) as caught_warnings:
+                warnings.simplefilter("always", ConvergenceWarning)
+                result = model.fit()
+
+            for caught in caught_warnings:
+                if issubclass(caught.category, ConvergenceWarning):
+                    logger.warning(
+                        "%s ARIMA収束警告: order=%s, message=%s",
+                        code,
+                        f"{order[0]},{order[1]},{order[2]}",
+                        str(caught.message),
+                    )
+
+            retvals = getattr(result, "mle_retvals", None)
+            if isinstance(retvals, dict) and not retvals.get("converged", True):
+                logger.warning(
+                    "%s ARIMA未収束: order=%s, mle_retvals=%s",
+                    code,
+                    f"{order[0]},{order[1]},{order[2]}",
+                    retvals,
+                )
+
             forecast_values = result.forecast(steps=horizon)
             output = [float(value) for value in forecast_values]
             aic = float(result.aic) if result.aic is not None else None
@@ -111,11 +141,32 @@ def build_rows(
     order: Tuple[int, int, int],
     train_points: int,
     aic: Optional[float],
+    logger,
 ) -> List[Tuple]:
     rows: List[Tuple] = []
     order_text = f"{order[0]},{order[1]},{order[2]}"
 
     for step, predicted_close in enumerate(predicted_values, start=1):
+        if not math.isfinite(predicted_close):
+            logger.warning(
+                "%s 予測値をスキップ: horizon=%d, order=%s, reason=not-finite, value=%s",
+                code,
+                step,
+                order_text,
+                predicted_close,
+            )
+            continue
+
+        if predicted_close < PREDICTED_CLOSE_MIN or predicted_close > PREDICTED_CLOSE_MAX:
+            logger.warning(
+                "%s 予測値をスキップ: horizon=%d, order=%s, reason=out-of-range, value=%s",
+                code,
+                step,
+                order_text,
+                predicted_close,
+            )
+            continue
+
         target_trade_date = shift_exchange_business_day(forecast_base_date, step)
         rows.append(
             (
@@ -220,6 +271,8 @@ def main() -> None:
                     horizon=args.horizon,
                     primary_order=primary_order,
                     fallback_order=fallback_order,
+                    code=code,
+                    logger=logger,
                 )
             except Exception as exc:
                 logger.warning("%s ARIMA予測失敗: %s", code, exc)
@@ -232,7 +285,13 @@ def main() -> None:
                 order=used_order,
                 train_points=len(closes),
                 aic=aic,
+                logger=logger,
             )
+
+            if not rows:
+                logger.warning("%s 有効な予測値がないため保存をスキップ", code)
+                continue
+
             inserted = upsert_rows(conn, args.target_table, rows)
 
             predicted_codes += 1

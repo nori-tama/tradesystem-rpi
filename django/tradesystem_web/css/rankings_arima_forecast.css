@@ -46,8 +46,3 @@ td:nth-child(n+5) {
     border: 1px solid var(--blue-200);
 }
 
-.predicted-close {
-    margin-top: 2px;
-    color: var(--gray-700);
-    font-size: 0.9rem;
-}

@@ -34,11 +34,11 @@
                 <th>銘柄名</th>
                 <th>市場・商品区分</th>
                 <th>予測基準日</th>
-                <th>1営業日先</th>
-                <th>2営業日先</th>
-                <th>3営業日先</th>
-                <th>4営業日先</th>
-                <th>5営業日先</th>
+                <th>予測日<br>{% if header_h1_date %}{{ header_h1_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h2_date %}{{ header_h2_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h4_date %}{{ header_h4_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h5_date %}{{ header_h5_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
             </tr>
         </thead>
         <tbody>
@@ -50,32 +50,27 @@
                 <td>{{ item.forecast_base_date|date:"Y-m-d" }}</td>
                 <td>
                     {% if item.h1_trade_date %}
-                    <div>{{ item.h1_trade_date|date:"Y-m-d" }}</div>
-                    <div class="predicted-close">{{ item.h1_close|floatformat:2 }}</div>
+                    <div>{{ item.h1_close|floatformat:2 }}</div>
                     {% else %}-{% endif %}
                 </td>
                 <td>
                     {% if item.h2_trade_date %}
-                    <div>{{ item.h2_trade_date|date:"Y-m-d" }}</div>
-                    <div class="predicted-close">{{ item.h2_close|floatformat:2 }}</div>
+                    <div>{{ item.h2_close|floatformat:2 }}</div>
                     {% else %}-{% endif %}
                 </td>
                 <td>
                     {% if item.h3_trade_date %}
-                    <div>{{ item.h3_trade_date|date:"Y-m-d" }}</div>
-                    <div class="predicted-close">{{ item.h3_close|floatformat:2 }}</div>
+                    <div>{{ item.h3_close|floatformat:2 }}</div>
                     {% else %}-{% endif %}
                 </td>
                 <td>
                     {% if item.h4_trade_date %}
-                    <div>{{ item.h4_trade_date|date:"Y-m-d" }}</div>
-                    <div class="predicted-close">{{ item.h4_close|floatformat:2 }}</div>
+                    <div>{{ item.h4_close|floatformat:2 }}</div>
                     {% else %}-{% endif %}
                 </td>
                 <td>
                     {% if item.h5_trade_date %}
-                    <div>{{ item.h5_trade_date|date:"Y-m-d" }}</div>
-                    <div class="predicted-close">{{ item.h5_close|floatformat:2 }}</div>
+                    <div>{{ item.h5_close|floatformat:2 }}</div>
                     {% else %}-{% endif %}
                 </td>
             </tr>
