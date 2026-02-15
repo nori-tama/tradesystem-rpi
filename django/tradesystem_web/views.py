@@ -711,6 +711,7 @@ def rankings_arima_forecast(request):
                     l.name,
                     l.market,
                     %s AS forecast_base_date,
+                    MAX(d.`close`) AS base_close,
                     MAX(CASE WHEN f.horizon = 1 THEN f.target_trade_date END) AS h1_trade_date,
                     MAX(CASE WHEN f.horizon = 1 THEN f.predicted_close END) AS h1_close,
                     MAX(CASE WHEN f.horizon = 2 THEN f.target_trade_date END) AS h2_trade_date,
@@ -735,9 +736,12 @@ def rankings_arima_forecast(request):
                 LEFT JOIN stock_prices_daily_arima_forecast f
                   ON f.code = l.code
                  AND f.forecast_base_date = %s
+                LEFT JOIN stock_prices_daily d
+                  ON d.code = l.code
+                 AND d.trade_date = %s
                 WHERE 1 = 1
             """
-            params = [latest_base_date, latest_base_date]
+            params = [latest_base_date, latest_base_date, latest_base_date]
             if selected_market:
                 sql += " AND l.market = %s"
                 params.append(selected_market)
@@ -753,6 +757,7 @@ def rankings_arima_forecast(request):
                     l.name,
                     l.market,
                     NULL AS forecast_base_date,
+                    NULL AS base_close,
                     NULL AS h1_trade_date,
                     NULL AS h1_close,
                     NULL AS h2_trade_date,
@@ -792,6 +797,7 @@ def rankings_arima_forecast(request):
         name,
         market,
         _forecast_base_date,
+        base_close,
         h1_trade_date,
         h1_close,
         h2_trade_date,
@@ -809,6 +815,7 @@ def rankings_arima_forecast(request):
                 'name': name or '-',
                 'market': market or '-',
                 'forecast_base_date': latest_base_date,
+                'base_close': float(base_close) if base_close is not None else None,
                 'h1_trade_date': h1_trade_date,
                 'h1_close': float(h1_close) if h1_close is not None else None,
                 'h2_trade_date': h2_trade_date,

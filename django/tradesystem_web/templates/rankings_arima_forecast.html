@@ -33,7 +33,7 @@
                 <th>銘柄コード</th>
                 <th>銘柄名</th>
                 <th>市場・商品区分</th>
-                <th>予測基準日</th>
+                <th>予測基準日<br>{% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h1_date %}{{ header_h1_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h2_date %}{{ header_h2_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
@@ -47,7 +47,7 @@
                 <td>{{ item.code }}</td>
                 <td>{{ item.name }}</td>
                 <td>{{ item.market }}</td>
-                <td>{{ item.forecast_base_date|date:"Y-m-d" }}</td>
+                <td>{% if item.base_close is not None %}{{ item.base_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>
                     {% if item.h1_trade_date %}
                     <div>{{ item.h1_close|floatformat:2 }}</div>
