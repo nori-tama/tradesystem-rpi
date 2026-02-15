@@ -33,7 +33,7 @@ table {
 th,
 td {
     border: 1px solid var(--border);
-    padding: 8px 10px;
+    padding: 4pt 10px;
     text-align: left;
     vertical-align: top;
 }
