@@ -5,13 +5,14 @@
     <meta charset="utf-8">
     <title>東証上場銘柄一覧</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
-    <link rel="stylesheet" href="{% static 'tse_listings_list.css' %}?v=20260214-1">
+    <link rel="stylesheet" href="{% static 'tse_listings_list.css' %}?v=20260214-2">
 </head>
 <body>
     <h1>東証上場銘柄一覧</h1>
     <div class="pagination">
         <a class="button" href="{% url 'rankings_ma_estimate' %}">移動平均 推測騰落率ランキング</a>
         <a class="button" href="{% url 'rankings_rsi' %}">RSI分析結果ランキング</a>
+        <a class="button" href="{% url 'rankings_arima_forecast_rate' %}">ARIMA予測 騰落率ランキング</a>
         <a class="button" href="{% url 'results_arima_forecast' %}">ARIMA予測結果一覧</a>
     </div>
     <form method="get" class="filters">
@@ -35,7 +36,7 @@
     <table>
         <thead>
             <tr>
-                <th>銘柄コード</th>
+                <th>コード</th>
                 <th>銘柄名</th>
                 <th>市場・商品区分</th>
                 <th>33業種</th>
@@ -53,6 +54,8 @@
                     <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
                     /
                     <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}">RSIグラフ</a>
+                    /
+                    <a class="action-link" href="{% url 'stock_arima_forecast_chart' item.code %}">ARIMA予測グラフ</a>
                 </td>
             </tr>
             {% empty %}

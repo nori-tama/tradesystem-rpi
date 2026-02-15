@@ -3,13 +3,13 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>移動平均 推測騰落率ランキング</title>
+    <title>ARIMA予測 騰落率ランキング</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
-    <link rel="stylesheet" href="{% static 'rankings_ma_estimate.css' %}?v=20260215-1">
+    <link rel="stylesheet" href="{% static 'rankings_arima_forecast_rate.css' %}?v=20260215-1">
 </head>
 <body>
-    <h1>移動平均 推測騰落率ランキング</h1>
-    <div class="meta">推測値: (5日移動平均 - 25日移動平均) / 25日移動平均 × 100</div>
+    <h1>ARIMA予測 騰落率ランキング</h1>
+    <div class="meta">基準日: {% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}-{% endif %} / 推測値: (5営業日後予測終値 - 予測基準日終値) / 予測基準日終値 × 100</div>
 
     <div class="filter-bar">
         <form method="get">
@@ -22,7 +22,7 @@
             </select>
             <button type="submit">絞り込み</button>
             {% if selected_market %}
-            <a class="button subtle" href="{% url 'rankings_ma_estimate' %}">クリア</a>
+            <a class="button subtle" href="{% url 'rankings_arima_forecast_rate' %}">クリア</a>
             {% endif %}
         </form>
     </div>
@@ -48,9 +48,9 @@
                         <td>{{ item.code }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.market }}</td>
-                        <td>{{ item.estimate_rate|floatformat:2 }}</td>
+                        <td>{{ item.forecast_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                            <a class="action-link" href="{% url 'stock_arima_forecast_chart' item.code %}">ARIMA予測グラフ</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -82,9 +82,9 @@
                         <td>{{ item.code }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.market }}</td>
-                        <td>{{ item.estimate_rate|floatformat:2 }}</td>
+                        <td>{{ item.forecast_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                            <a class="action-link" href="{% url 'stock_arima_forecast_chart' item.code %}">ARIMA予測グラフ</a>
                         </td>
                     </tr>
                     {% empty %}
