@@ -50,7 +50,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.estimate_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -84,7 +84,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.estimate_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
                         </td>
                     </tr>
                     {% empty %}

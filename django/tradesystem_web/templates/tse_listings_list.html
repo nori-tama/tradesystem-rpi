@@ -51,11 +51,11 @@
                 <td>{{ item.market }}</td>
                 <td>{{ item.sector33_code }} - {{ item.sector33_name }}</td>
                 <td>
-                    <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                    <a class="action-link" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
                     /
-                    <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}">RSIグラフ</a>
+                    <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}">📈 RSI</a>
                     /
-                    <a class="action-link" href="{% url 'stock_arima_forecast_chart' item.code %}">ARIMA予測グラフ</a>
+                    <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
                 </td>
             </tr>
             {% empty %}

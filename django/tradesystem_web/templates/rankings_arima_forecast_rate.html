@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>ARIMA予測 騰落率ランキング</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
-    <link rel="stylesheet" href="{% static 'rankings_arima_forecast_rate.css' %}?v=20260215-1">
+    <link rel="stylesheet" href="{% static 'rankings_arima_forecast_rate.css' %}?v=20260215-2">
 </head>
 <body>
     <h1>ARIMA予測 騰落率ランキング</h1>
@@ -50,7 +50,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.forecast_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_arima_forecast_chart' item.code %}">ARIMA予測グラフ</a>
+                            <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -84,7 +84,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.forecast_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_arima_forecast_chart' item.code %}">ARIMA予測グラフ</a>
+                            <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
                         </td>
                     </tr>
                     {% empty %}

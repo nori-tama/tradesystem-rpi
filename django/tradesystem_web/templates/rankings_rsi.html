@@ -50,7 +50,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.rsi|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">RSIグラフ</a>
+                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">📈 RSI</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -84,7 +84,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.rsi|floatformat:2 }}</td>
                         <td>
-                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">RSIグラフ</a>
+                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">📈 RSI</a>
                         </td>
                     </tr>
                     {% empty %}

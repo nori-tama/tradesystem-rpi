@@ -84,6 +84,13 @@ tbody tr:nth-child(even) {
     margin-right: 8px;
 }
 
+.graph-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 0;
+}
+
 .button.disabled {
     color: var(--border);
 }
