@@ -5,7 +5,7 @@ from django.shortcuts import render
 from .common import shift_exchange_business_day
 
 
-def rankings_arima_forecast(request):
+def results_arima_forecast(request):
     selected_market = (request.GET.get("market") or "").strip()
 
     with connection.cursor() as cursor:
@@ -56,11 +56,11 @@ def rankings_arima_forecast(request):
     )
 
     cache_key = (
-        f'rankings_arima_forecast:{latest_base_date or "none"}:market:{selected_market or "all"}'
+        f'results_arima_forecast:{latest_base_date or "none"}:market:{selected_market or "all"}'
     )
     cached_context = cache.get(cache_key)
     if cached_context is not None:
-        return render(request, 'rankings_arima_forecast.html', cached_context)
+        return render(request, 'results_arima_forecast.html', cached_context)
 
     with connection.cursor() as cursor:
         if latest_base_date is not None:
@@ -201,4 +201,4 @@ def rankings_arima_forecast(request):
     }
     cache.set(cache_key, context, 300)
 
-    return render(request, 'rankings_arima_forecast.html', context)
+    return render(request, 'results_arima_forecast.html', context)

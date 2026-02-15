@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>東証上場銘柄一覧</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
     <link rel="stylesheet" href="{% static 'tse_listings_list.css' %}?v=20260214-1">
 </head>
 <body>
@@ -12,7 +12,7 @@
     <div class="pagination">
         <a class="button" href="{% url 'rankings_ma_estimate' %}">移動平均 推測騰落率ランキング</a>
         <a class="button" href="{% url 'rankings_rsi' %}">RSI分析結果ランキング</a>
-        <a class="button" href="{% url 'rankings_arima_forecast' %}">ARIMA予測結果一覧</a>
+        <a class="button" href="{% url 'results_arima_forecast' %}">ARIMA予測結果一覧</a>
     </div>
     <form method="get" class="filters">
         <label for="market">市場・商品区分</label>
