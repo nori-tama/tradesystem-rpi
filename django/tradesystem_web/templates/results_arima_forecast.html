@@ -25,9 +25,6 @@
         </form>
     </div>
     <div class="meta">基準日: {% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}-{% endif %} / 件数: {{ page_obj.paginator.count }} ({{ page_obj.number }} / {{ page_obj.paginator.num_pages }}ページ)</div>
-
-
-
     <table>
         <thead>
             <tr>

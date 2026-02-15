@@ -1,16 +1,16 @@
 th:nth-child(1),
 td:nth-child(1) {
-    width: 8%;
+    width: 5%;
 }
 
 th:nth-child(2),
 td:nth-child(2) {
-    width: 30%;
+    width: 38%;
 }
 
 th:nth-child(3),
 td:nth-child(3) {
-    width: 12%;
+    width: 15%;
 }
 
 th:nth-child(4),
@@ -25,7 +25,7 @@ td:nth-child(n+5):nth-child(-n+9) {
 
 th:nth-child(10),
 td:nth-child(10) {
-    width: 15%;
+    width: 7%;
     text-align: center;
     white-space: nowrap;
 }
