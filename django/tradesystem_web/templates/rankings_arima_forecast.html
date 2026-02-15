@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>ARIMA予測結果一覧</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
+    <link rel="stylesheet" href="{% static 'rankings_arima_forecast.css' %}?v=20260215-1">
+</head>
+<body>
+    <h1>ARIMA予測結果一覧</h1>
+    <div class="meta">基準日: {% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}-{% endif %}</div>
+
+    <div class="filter-bar">
+        <form method="get">
+            <label for="market">市場・商品区分</label>
+            <select id="market" name="market">
+                <option value="">全て</option>
+                {% for market in markets %}
+                <option value="{{ market }}" {% if market == selected_market %}selected{% endif %}>{{ market }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">絞り込み</button>
+            {% if selected_market %}
+            <a class="button subtle" href="{% url 'rankings_arima_forecast' %}">クリア</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>市場・商品区分</th>
+                <th>予測基準日</th>
+                <th>1営業日先</th>
+                <th>2営業日先</th>
+                <th>3営業日先</th>
+                <th>4営業日先</th>
+                <th>5営業日先</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in forecast_rows %}
+            <tr>
+                <td>{{ item.code }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.market }}</td>
+                <td>{{ item.forecast_base_date|date:"Y-m-d" }}</td>
+                <td>
+                    {% if item.h1_trade_date %}
+                    <div>{{ item.h1_trade_date|date:"Y-m-d" }}</div>
+                    <div class="predicted-close">{{ item.h1_close|floatformat:2 }}</div>
+                    {% else %}-{% endif %}
+                </td>
+                <td>
+                    {% if item.h2_trade_date %}
+                    <div>{{ item.h2_trade_date|date:"Y-m-d" }}</div>
+                    <div class="predicted-close">{{ item.h2_close|floatformat:2 }}</div>
+                    {% else %}-{% endif %}
+                </td>
+                <td>
+                    {% if item.h3_trade_date %}
+                    <div>{{ item.h3_trade_date|date:"Y-m-d" }}</div>
+                    <div class="predicted-close">{{ item.h3_close|floatformat:2 }}</div>
+                    {% else %}-{% endif %}
+                </td>
+                <td>
+                    {% if item.h4_trade_date %}
+                    <div>{{ item.h4_trade_date|date:"Y-m-d" }}</div>
+                    <div class="predicted-close">{{ item.h4_close|floatformat:2 }}</div>
+                    {% else %}-{% endif %}
+                </td>
+                <td>
+                    {% if item.h5_trade_date %}
+                    <div>{{ item.h5_trade_date|date:"Y-m-d" }}</div>
+                    <div class="predicted-close">{{ item.h5_close|floatformat:2 }}</div>
+                    {% else %}-{% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9">予測データがありません。</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+</body>
+</html>

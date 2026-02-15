@@ -70,6 +70,7 @@ mysql -u root tradesystem < ~/tradesystem-rpi/ddl/tse_listings.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_ma.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_rsi.sql
+mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_arima_forecast.sql
 ```
 
 ## 7. 動作確認

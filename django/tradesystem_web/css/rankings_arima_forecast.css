@@ -1,0 +1,53 @@
+th:nth-child(1),
+td:nth-child(1) {
+    width: 8%;
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+    width: 18%;
+}
+
+th:nth-child(3),
+td:nth-child(3) {
+    width: 14%;
+}
+
+th:nth-child(4),
+td:nth-child(4) {
+    width: 10%;
+}
+
+th:nth-child(n+5),
+td:nth-child(n+5) {
+    width: 10%;
+    text-align: center;
+}
+
+.filter-bar {
+    margin: 12px 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+.filter-bar form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.filter-bar select {
+    min-width: 200px;
+}
+
+.button.subtle {
+    background: transparent;
+    color: var(--blue-900);
+    border: 1px solid var(--blue-200);
+}
+
+.predicted-close {
+    margin-top: 2px;
+    color: var(--gray-700);
+    font-size: 0.9rem;
+}

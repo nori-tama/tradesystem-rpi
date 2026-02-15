@@ -644,3 +644,136 @@ def rankings_rsi(request):
     cache.set(cache_key, context, 300)
 
     return render(request, 'rankings_rsi.html', context)
+
+
+def rankings_arima_forecast(request):
+    selected_market = (request.GET.get("market") or "").strip()
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT DISTINCT market
+            FROM tse_listings
+            WHERE market IS NOT NULL AND market <> ''
+            ORDER BY market
+            """
+        )
+        markets = [row[0] for row in cursor.fetchall()]
+
+        cursor.execute(
+            """
+            SELECT MAX(forecast_base_date)
+            FROM stock_prices_daily_arima_forecast
+            """
+        )
+        latest_base_date_row = cursor.fetchone()
+
+    latest_base_date = latest_base_date_row[0] if latest_base_date_row else None
+    if latest_base_date is None:
+        return render(
+            request,
+            'rankings_arima_forecast.html',
+            {
+                'forecast_rows': [],
+                'markets': markets,
+                'selected_market': selected_market,
+                'forecast_base_date': None,
+            },
+        )
+
+    cache_key = (
+        f'rankings_arima_forecast:{latest_base_date}:market:{selected_market or "all"}'
+    )
+    cached_context = cache.get(cache_key)
+    if cached_context is not None:
+        return render(request, 'rankings_arima_forecast.html', cached_context)
+
+    with connection.cursor() as cursor:
+        sql = """
+            SELECT
+                f.code,
+                l.name,
+                l.market,
+                f.forecast_base_date,
+                MAX(CASE WHEN f.horizon = 1 THEN f.target_trade_date END) AS h1_trade_date,
+                MAX(CASE WHEN f.horizon = 1 THEN f.predicted_close END) AS h1_close,
+                MAX(CASE WHEN f.horizon = 2 THEN f.target_trade_date END) AS h2_trade_date,
+                MAX(CASE WHEN f.horizon = 2 THEN f.predicted_close END) AS h2_close,
+                MAX(CASE WHEN f.horizon = 3 THEN f.target_trade_date END) AS h3_trade_date,
+                MAX(CASE WHEN f.horizon = 3 THEN f.predicted_close END) AS h3_close,
+                MAX(CASE WHEN f.horizon = 4 THEN f.target_trade_date END) AS h4_trade_date,
+                MAX(CASE WHEN f.horizon = 4 THEN f.predicted_close END) AS h4_close,
+                MAX(CASE WHEN f.horizon = 5 THEN f.target_trade_date END) AS h5_trade_date,
+                MAX(CASE WHEN f.horizon = 5 THEN f.predicted_close END) AS h5_close
+            FROM stock_prices_daily_arima_forecast f
+            JOIN (
+                SELECT t.code, t.name, t.market
+                FROM tse_listings t
+                JOIN (
+                    SELECT code, MAX(listing_date) AS latest_listing_date
+                    FROM tse_listings
+                    GROUP BY code
+                ) latest
+                  ON latest.code = t.code
+                 AND latest.latest_listing_date = t.listing_date
+            ) l ON l.code = f.code
+            WHERE f.forecast_base_date = %s
+        """
+        params = [latest_base_date]
+        if selected_market:
+            sql += " AND l.market = %s"
+            params.append(selected_market)
+
+        sql += """
+            GROUP BY f.code, l.name, l.market, f.forecast_base_date
+            ORDER BY f.code
+        """
+
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
+
+    forecast_rows = []
+    for (
+        code,
+        name,
+        market,
+        forecast_base_date,
+        h1_trade_date,
+        h1_close,
+        h2_trade_date,
+        h2_close,
+        h3_trade_date,
+        h3_close,
+        h4_trade_date,
+        h4_close,
+        h5_trade_date,
+        h5_close,
+    ) in rows:
+        forecast_rows.append(
+            {
+                'code': code,
+                'name': name or '-',
+                'market': market or '-',
+                'forecast_base_date': forecast_base_date,
+                'h1_trade_date': h1_trade_date,
+                'h1_close': float(h1_close) if h1_close is not None else None,
+                'h2_trade_date': h2_trade_date,
+                'h2_close': float(h2_close) if h2_close is not None else None,
+                'h3_trade_date': h3_trade_date,
+                'h3_close': float(h3_close) if h3_close is not None else None,
+                'h4_trade_date': h4_trade_date,
+                'h4_close': float(h4_close) if h4_close is not None else None,
+                'h5_trade_date': h5_trade_date,
+                'h5_close': float(h5_close) if h5_close is not None else None,
+            }
+        )
+
+    context = {
+        'forecast_rows': forecast_rows,
+        'markets': markets,
+        'selected_market': selected_market,
+        'forecast_base_date': latest_base_date,
+    }
+    cache.set(cache_key, context, 300)
+
+    return render(request, 'rankings_arima_forecast.html', context)
