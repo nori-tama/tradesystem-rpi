@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <title>ARIMA予測結果一覧</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
-    <link rel="stylesheet" href="{% static 'results_arima_forecast.css' %}?v=20260215-3">
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
+    <link rel="stylesheet" href="{% static 'results_arima_forecast.css' %}?v=20260215-4">
 </head>
 <body>
     <h1>ARIMA予測結果一覧</h1>
@@ -40,6 +40,7 @@
                 <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h4_date %}{{ header_h4_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h5_date %}{{ header_h5_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody>
@@ -74,10 +75,13 @@
                     <div>{{ item.h5_close|floatformat:2 }}</div>
                     {% else %}-{% endif %}
                 </td>
+                <td>
+                    <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="9">予測データがありません。</td>
+                <td colspan="10">予測データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>

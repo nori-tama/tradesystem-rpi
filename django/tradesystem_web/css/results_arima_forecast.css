@@ -5,12 +5,12 @@ td:nth-child(1) {
 
 th:nth-child(2),
 td:nth-child(2) {
-    width: 36%;
+    width: 30%;
 }
 
 th:nth-child(3),
 td:nth-child(3) {
-    width: 14%;
+    width: 12%;
 }
 
 th:nth-child(4),
@@ -18,12 +18,19 @@ td:nth-child(4) {
     width: 7%;
 }
 
-th:nth-child(n+5),
-td:nth-child(n+5) {
+th:nth-child(n+5):nth-child(-n+9),
+td:nth-child(n+5):nth-child(-n+9) {
     width: 7%;
 }
 
-td:nth-child(n+4) {
+th:nth-child(10),
+td:nth-child(10) {
+    width: 15%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+td:nth-child(n+4):nth-child(-n+9) {
     text-align: right;
 }
 
