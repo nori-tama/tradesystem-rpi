@@ -3,13 +3,13 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>RSI分析結果ランキング</title>
+    <title>移動平均 推測騰落率ランキング</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
-    <link rel="stylesheet" href="{% static 'ma_estimate_rankings.css' %}?v=20260214-5">
+    <link rel="stylesheet" href="{% static 'rankings_ma_estimate.css' %}?v=20260215-1">
 </head>
 <body>
-    <h1>RSI分析結果ランキング</h1>
-    <div class="meta">対象指標: RSI({{ window }})</div>
+    <h1>移動平均 推測騰落率ランキング</h1>
+    <div class="meta">推測値: (5日移動平均 - 25日移動平均) / 25日移動平均 × 100</div>
 
     <div class="filter-bar">
         <form method="get">
@@ -22,14 +22,14 @@
             </select>
             <button type="submit">絞り込み</button>
             {% if selected_market %}
-            <a class="button subtle" href="{% url 'rsi_rankings' %}">クリア</a>
+            <a class="button subtle" href="{% url 'rankings_ma_estimate' %}">クリア</a>
             {% endif %}
         </form>
     </div>
 
     <div class="ranking-grid">
         <section class="ranking-panel">
-            <h2>RSI 上位 TOP10</h2>
+            <h2>値上がり率 TOP10</h2>
             <table>
                 <thead>
                     <tr>
@@ -37,22 +37,20 @@
                         <th>銘柄コード</th>
                         <th>銘柄名</th>
                         <th>市場・商品区分</th>
-                        <th>RSI</th>
+                        <th>値上がり率(%)</th>
                         <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in rsi_top10 %}
+                    {% for item in rise_top10 %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ item.code }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.market }}</td>
-                        <td>{{ item.rsi|floatformat:2 }}</td>
+                        <td>{{ item.estimate_rate|floatformat:2 }}</td>
                         <td>
                             <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
-                            /
-                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">RSIグラフ</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -65,7 +63,7 @@
         </section>
 
         <section class="ranking-panel">
-            <h2>RSI 下位 TOP10</h2>
+            <h2>値下がり率 TOP10</h2>
             <table>
                 <thead>
                     <tr>
@@ -73,22 +71,20 @@
                         <th>銘柄コード</th>
                         <th>銘柄名</th>
                         <th>市場・商品区分</th>
-                        <th>RSI</th>
+                        <th>値下がり率(%)</th>
                         <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in rsi_bottom10 %}
+                    {% for item in fall_top10 %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ item.code }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.market }}</td>
-                        <td>{{ item.rsi|floatformat:2 }}</td>
+                        <td>{{ item.estimate_rate|floatformat:2 }}</td>
                         <td>
                             <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
-                            /
-                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">RSIグラフ</a>
                         </td>
                     </tr>
                     {% empty %}

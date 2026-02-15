@@ -24,6 +24,6 @@ urlpatterns = [
     path('tse_listings/', views.tse_listings_list, name='tse_listings_list'),
     path('stocks/<str:code>/chart/', views.stock_price_chart, name='stock_price_chart'),
     path('stocks/<str:code>/rsi/', views.stock_rsi_chart, name='stock_rsi_chart'),
-    path('rankings/ma-estimate/', views.ma_estimate_rankings, name='ma_estimate_rankings'),
-    path('rankings/rsi/', views.rsi_rankings, name='rsi_rankings'),
+    path('rankings/ma-estimate/', views.rankings_ma_estimate, name='rankings_ma_estimate'),
+    path('rankings/rsi/', views.rankings_rsi, name='rankings_rsi'),
 ]

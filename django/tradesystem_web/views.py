@@ -407,7 +407,7 @@ def stock_rsi_chart(request, code):
     )
 
 
-def ma_estimate_rankings(request):
+def rankings_ma_estimate(request):
     selected_market = (request.GET.get("market") or "").strip()
 
     with connection.cursor() as cursor:
@@ -428,7 +428,7 @@ def ma_estimate_rankings(request):
     if latest_trade_date is None:
         return render(
             request,
-            'ma_estimate_rankings.html',
+            'rankings_ma_estimate.html',
             {
                 'rise_top10': [],
                 'fall_top10': [],
@@ -437,10 +437,10 @@ def ma_estimate_rankings(request):
             },
         )
 
-    cache_key = f'ma_estimate_rankings:{latest_trade_date}:market:{selected_market or "all"}'
+    cache_key = f'rankings_ma_estimate:{latest_trade_date}:market:{selected_market or "all"}'
     cached_context = cache.get(cache_key)
     if cached_context is not None:
-        return render(request, 'ma_estimate_rankings.html', cached_context)
+        return render(request, 'rankings_ma_estimate.html', cached_context)
 
     with connection.cursor() as cursor:
         base_sql = """
@@ -522,10 +522,10 @@ def ma_estimate_rankings(request):
     }
     cache.set(cache_key, context, 300)
 
-    return render(request, 'ma_estimate_rankings.html', context)
+    return render(request, 'rankings_ma_estimate.html', context)
 
 
-def rsi_rankings(request):
+def rankings_rsi(request):
     selected_market = (request.GET.get("market") or "").strip()
     window = 14
 
@@ -554,7 +554,7 @@ def rsi_rankings(request):
     if latest_trade_date is None:
         return render(
             request,
-            'rsi_rankings.html',
+            'rankings_rsi.html',
             {
                 'rsi_top10': [],
                 'rsi_bottom10': [],
@@ -564,10 +564,10 @@ def rsi_rankings(request):
             },
         )
 
-    cache_key = f'rsi_rankings:{latest_trade_date}:window:{window}:market:{selected_market or "all"}'
+    cache_key = f'rankings_rsi:{latest_trade_date}:window:{window}:market:{selected_market or "all"}'
     cached_context = cache.get(cache_key)
     if cached_context is not None:
-        return render(request, 'rsi_rankings.html', cached_context)
+        return render(request, 'rankings_rsi.html', cached_context)
 
     with connection.cursor() as cursor:
         base_sql = """
@@ -643,4 +643,4 @@ def rsi_rankings(request):
     }
     cache.set(cache_key, context, 300)
 
-    return render(request, 'rsi_rankings.html', context)
+    return render(request, 'rankings_rsi.html', context)
