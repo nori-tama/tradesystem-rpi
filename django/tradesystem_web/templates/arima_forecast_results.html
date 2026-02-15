@@ -5,10 +5,12 @@
     <meta charset="utf-8">
     <title>ARIMA予測結果一覧</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
-    <link rel="stylesheet" href="{% static 'results_arima_forecast.css' %}?v=20260215-3">
+    <link rel="stylesheet" href="{% static 'arima_forecast_results.css' %}?v=20260215-2">
 </head>
 <body>
     <h1>ARIMA予測結果一覧</h1>
+    <div class="meta">基準日: {% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}-{% endif %}</div>
+
     <div class="filter-bar">
         <form method="get">
             <label for="market">市場・商品区分</label>
@@ -20,13 +22,10 @@
             </select>
             <button type="submit">絞り込み</button>
             {% if selected_market %}
-            <a class="button subtle" href="{% url 'results_arima_forecast' %}">クリア</a>
+            <a class="button subtle" href="{% url 'arima_forecast_results' %}">クリア</a>
             {% endif %}
         </form>
     </div>
-    <div class="meta">基準日: {% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}-{% endif %} / 件数: {{ page_obj.paginator.count }} ({{ page_obj.number }} / {{ page_obj.paginator.num_pages }}ページ)</div>
-
-
 
     <table>
         <thead>
@@ -84,16 +83,6 @@
     </table>
 
     <div class="pagination">
-        {% if page_obj.has_previous %}
-            <a class="button" href="?page={{ page_obj.previous_page_number }}{% if selected_market %}&market={{ selected_market }}{% endif %}">前ページ</a>
-        {% else %}
-            <span class="button disabled">前ページ</span>
-        {% endif %}
-        {% if page_obj.has_next %}
-            <a class="button" href="?page={{ page_obj.next_page_number }}{% if selected_market %}&market={{ selected_market }}{% endif %}">次ページ</a>
-        {% else %}
-            <span class="button disabled">次ページ</span>
-        {% endif %}
         <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
     </div>
 </body>
