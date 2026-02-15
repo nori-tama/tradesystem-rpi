@@ -25,4 +25,5 @@ urlpatterns = [
     path('stocks/<str:code>/chart/', views.stock_price_chart, name='stock_price_chart'),
     path('stocks/<str:code>/rsi/', views.stock_rsi_chart, name='stock_rsi_chart'),
     path('rankings/ma-estimate/', views.ma_estimate_rankings, name='ma_estimate_rankings'),
+    path('rankings/rsi/', views.rsi_rankings, name='rsi_rankings'),
 ]

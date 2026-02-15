@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>RSI分析結果ランキング</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
+    <link rel="stylesheet" href="{% static 'ma_estimate_rankings.css' %}?v=20260214-5">
+</head>
+<body>
+    <h1>RSI分析結果ランキング</h1>
+    <div class="meta">対象指標: RSI({{ window }})</div>
+
+    <div class="filter-bar">
+        <form method="get">
+            <label for="market">市場・商品区分</label>
+            <select id="market" name="market">
+                <option value="">全て</option>
+                {% for market in markets %}
+                <option value="{{ market }}" {% if market == selected_market %}selected{% endif %}>{{ market }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">絞り込み</button>
+            {% if selected_market %}
+            <a class="button subtle" href="{% url 'rsi_rankings' %}">クリア</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="ranking-grid">
+        <section class="ranking-panel">
+            <h2>RSI 上位 TOP10</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>順位</th>
+                        <th>銘柄コード</th>
+                        <th>銘柄名</th>
+                        <th>市場・商品区分</th>
+                        <th>RSI</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in rsi_top10 %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.market }}</td>
+                        <td>{{ item.rsi|floatformat:2 }}</td>
+                        <td>
+                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                            /
+                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">RSIグラフ</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">データがありません。</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="ranking-panel">
+            <h2>RSI 下位 TOP10</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>順位</th>
+                        <th>銘柄コード</th>
+                        <th>銘柄名</th>
+                        <th>市場・商品区分</th>
+                        <th>RSI</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in rsi_bottom10 %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.market }}</td>
+                        <td>{{ item.rsi|floatformat:2 }}</td>
+                        <td>
+                            <a class="action-link" href="{% url 'stock_price_chart' item.code %}">株価グラフ</a>
+                            /
+                            <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}?window={{ window }}">RSIグラフ</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">データがありません。</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <div class="pagination">
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+</body>
+</html>
