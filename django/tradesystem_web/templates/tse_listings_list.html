@@ -16,6 +16,8 @@
         <a class="button" href="{% url 'results_arima_forecast' %}">ARIMA予測結果一覧</a>
     </div>
     <form method="get" class="filters">
+        <label for="code">コード</label>
+        <input id="code" name="code" type="text" value="{{ selected_code }}" placeholder="例: 7203">
         <label for="market">市場・商品区分</label>
         <select id="market" name="market">
             <option value="">すべて</option>
@@ -67,12 +69,12 @@
     </table>
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a class="button" href="?page={{ page_obj.previous_page_number }}&market={{ selected_market }}&sector33={{ selected_sector33 }}">前ページ</a>
+            <a class="button" href="?page={{ page_obj.previous_page_number }}&code={{ selected_code }}&market={{ selected_market }}&sector33={{ selected_sector33 }}">前ページ</a>
         {% else %}
             <span class="button disabled">前ページ</span>
         {% endif %}
         {% if page_obj.has_next %}
-            <a class="button" href="?page={{ page_obj.next_page_number }}&market={{ selected_market }}&sector33={{ selected_sector33 }}">次ページ</a>
+            <a class="button" href="?page={{ page_obj.next_page_number }}&code={{ selected_code }}&market={{ selected_market }}&sector33={{ selected_sector33 }}">次ページ</a>
         {% else %}
             <span class="button disabled">次ページ</span>
         {% endif %}

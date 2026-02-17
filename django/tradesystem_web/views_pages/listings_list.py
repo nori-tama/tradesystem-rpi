@@ -4,6 +4,7 @@ from django.shortcuts import render
 
 
 def tse_listings_list(request):
+    selected_code = request.GET.get("code")
     selected_market = request.GET.get("market")
     selected_sector33 = request.GET.get("sector33")
     with connection.cursor() as cursor:
@@ -29,6 +30,9 @@ def tse_listings_list(request):
 
         params = []
         where_clauses = []
+        if selected_code:
+            where_clauses.append("code LIKE %s")
+            params.append(f"%{selected_code}%")
         if selected_market:
             where_clauses.append("market = %s")
             params.append(selected_market)
@@ -71,6 +75,7 @@ def tse_listings_list(request):
         {
             'listings': page_obj,
             'page_obj': page_obj,
+            'selected_code': selected_code or "",
             'markets': markets,
             'selected_market': selected_market or "",
             'sector33_names': sector33_names,
