@@ -29,7 +29,7 @@ def rankings_arima_forecast_rate(request):
     if latest_base_date is None:
         return render(
             request,
-            'rankings_arima_forecast_rate.html',
+            'rankings_arima_forecast.html',
             {
                 'rise_top10': [],
                 'fall_top10': [],
@@ -44,7 +44,7 @@ def rankings_arima_forecast_rate(request):
     )
     cached_context = cache.get(cache_key)
     if cached_context is not None:
-        return render(request, 'rankings_arima_forecast_rate.html', cached_context)
+        return render(request, 'rankings_arima_forecast.html', cached_context)
 
     with connection.cursor() as cursor:
         base_sql = """
@@ -128,4 +128,4 @@ def rankings_arima_forecast_rate(request):
     }
     cache.set(cache_key, context, 300)
 
-    return render(request, 'rankings_arima_forecast_rate.html', context)
+    return render(request, 'rankings_arima_forecast.html', context)

@@ -133,7 +133,7 @@ def stock_price_chart(request, code):
 
     return render(
         request,
-        'stock_price_chart.html',
+        'chart_price.html',
         {
             'listing': listing,
             'chart_labels': chart_labels,

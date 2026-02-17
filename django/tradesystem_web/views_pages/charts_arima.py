@@ -220,7 +220,7 @@ def stock_arima_forecast_chart(request, code):
 
     return render(
         request,
-        'stock_arima_forecast_chart.html',
+        'chart_arima_forecast.html',
         {
             'listing': listing,
             'price_labels': price_labels,

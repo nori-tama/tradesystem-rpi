@@ -159,7 +159,7 @@ def stock_rsi_chart(request, code):
 
     return render(
         request,
-        'stock_rsi_chart.html',
+        'chart_rsi.html',
         {
             'listing': listing,
             'rsi_window': rsi_window,

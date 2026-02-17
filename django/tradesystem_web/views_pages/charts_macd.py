@@ -156,7 +156,7 @@ def stock_macd_chart(request, code):
 
     return render(
         request,
-        'stock_macd_chart.html',
+        'chart_macd.html',
         {
             'listing': listing,
             'window_short': window_short,
