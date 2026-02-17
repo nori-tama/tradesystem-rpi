@@ -3,11 +3,11 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>RSI分析グラフ</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-3">
+    <title>MACD分析グラフ</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
 </head>
 <body>
-    <h1>RSI分析グラフ</h1>
+    <h1>MACD分析グラフ</h1>
     <table class="chart-meta">
         <thead>
             <tr>
@@ -24,27 +24,18 @@
             </tr>
         </tbody>
     </table>
-    <div class="meta">対象期間: 最新100日 / RSI期間: {{ rsi_window }}日</div>
-
-    <form method="get" class="filters">
-        <label for="window">RSI期間</label>
-        <select id="window" name="window">
-            <option value="14" {% if rsi_window == 14 %}selected{% endif %}>14日</option>
-            <option value="21" {% if rsi_window == 21 %}selected{% endif %}>21日</option>
-            <option value="28" {% if rsi_window == 28 %}selected{% endif %}>28日</option>
-        </select>
-        <button type="submit">更新</button>
-    </form>
+    <div class="meta">対象期間: 最新100日 / MACD期間: ({{ window_short }}, {{ window_long }}, {{ window_signal }})</div>
 
     {% if price_chart_labels or chart_labels %}
-    <div id="priceChart" class="chart-panel"></div>
+    <div id="macdChart" class="chart-panel"></div>
     {% else %}
-    <div class="meta">株価またはRSIデータがありません。</div>
+    <div class="meta">株価またはMACDデータがありません。</div>
     {% endif %}
 
     <div class="pagination">
         <a class="button" href="{% url 'stock_price_chart' listing.code %}">📈 株価</a>
-        <a class="button" href="{% url 'stock_macd_chart' listing.code %}">📈 MACD</a>
+        <a class="button" href="{% url 'stock_rsi_chart' listing.code %}">📈 RSI</a>
+        <a class="button" href="{% url 'stock_arima_forecast_chart' listing.code %}">📈 ARIMA</a>
         <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
     </div>
 
@@ -57,23 +48,22 @@
     {{ non_business_day_labels|json_script:"price-chart-non-business-days" }}
     {{ missing_plot_day_labels|json_script:"price-chart-missing-plot-days" }}
 
-    {{ chart_labels|json_script:"rsi-chart-labels" }}
-    {{ rsi_values|json_script:"rsi-chart-values" }}
-    {{ overbought_values|json_script:"rsi-overbought-values" }}
-    {{ oversold_values|json_script:"rsi-oversold-values" }}
+    {{ chart_labels|json_script:"macd-chart-labels" }}
+    {{ macd_values|json_script:"macd-chart-values" }}
+    {{ signal_values|json_script:"signal-chart-values" }}
+    {{ histogram_values|json_script:"histogram-chart-values" }}
 
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script>
         const rootStyle = getComputedStyle(document.documentElement);
         const blue700 = rootStyle.getPropertyValue('--blue-700').trim();
         const blue500 = rootStyle.getPropertyValue('--blue-500').trim();
-        const blue900 = rootStyle.getPropertyValue('--blue-900').trim();
         const borderColor = rootStyle.getPropertyValue('--border').trim();
         const riseRed = '#d32f2f';
 
         const priceLabels = JSON.parse(document.getElementById('price-chart-labels').textContent);
-        const rsiLabels = JSON.parse(document.getElementById('rsi-chart-labels').textContent);
-        if (priceLabels.length > 0 || rsiLabels.length > 0) {
+        const macdLabels = JSON.parse(document.getElementById('macd-chart-labels').textContent);
+        if (priceLabels.length > 0 || macdLabels.length > 0) {
             const openValues = JSON.parse(document.getElementById('price-chart-open').textContent);
             const highValues = JSON.parse(document.getElementById('price-chart-high').textContent);
             const lowValues = JSON.parse(document.getElementById('price-chart-low').textContent);
@@ -81,13 +71,14 @@
             const mondayTickLabels = JSON.parse(document.getElementById('price-chart-monday-ticks').textContent);
             const nonBusinessDays = JSON.parse(document.getElementById('price-chart-non-business-days').textContent);
             const missingPlotDays = JSON.parse(document.getElementById('price-chart-missing-plot-days').textContent);
-            const rsiValues = JSON.parse(document.getElementById('rsi-chart-values').textContent);
-            const overboughtValues = JSON.parse(document.getElementById('rsi-overbought-values').textContent);
-            const oversoldValues = JSON.parse(document.getElementById('rsi-oversold-values').textContent);
-            const chartPanel = document.getElementById('priceChart');
-            const chartHeight = chartPanel ? chartPanel.clientHeight : 580;
+            const macdValues = JSON.parse(document.getElementById('macd-chart-values').textContent);
+            const signalValues = JSON.parse(document.getElementById('signal-chart-values').textContent);
+            const histogramValues = JSON.parse(document.getElementById('histogram-chart-values').textContent);
+            const chartPanel = document.getElementById('macdChart');
+            const chartHeight = chartPanel ? chartPanel.clientHeight : 620;
 
             const traces = [];
+
             if (priceLabels.length > 0) {
                 traces.push({
                     type: 'candlestick',
@@ -107,44 +98,44 @@
                     },
                     whiskerwidth: 0.3,
                     opacity: 1,
+                    yaxis: 'y',
                 });
             }
 
-            if (rsiLabels.length > 0) {
+            if (macdLabels.length > 0) {
                 traces.push(
+                    {
+                        type: 'bar',
+                        x: macdLabels,
+                        y: histogramValues,
+                        yaxis: 'y2',
+                        name: 'Histogram',
+                        marker: { color: 'rgba(142, 36, 170, 0.35)' },
+                    },
                     {
                         type: 'scatter',
                         mode: 'lines',
-                        x: rsiLabels,
-                        y: rsiValues,
+                        x: macdLabels,
+                        y: macdValues,
                         yaxis: 'y2',
-                        name: 'RSI',
+                        name: 'MACD',
                         line: { color: '#ffb300', width: 2 },
                     },
                     {
                         type: 'scatter',
                         mode: 'lines',
-                        x: rsiLabels,
-                        y: overboughtValues,
+                        x: macdLabels,
+                        y: signalValues,
                         yaxis: 'y2',
-                        name: '買われ過ぎ(70)',
-                        line: { color: 'rgba(211, 47, 47, 0.45)', width: 1.5 },
-                    },
-                    {
-                        type: 'scatter',
-                        mode: 'lines',
-                        x: rsiLabels,
-                        y: oversoldValues,
-                        yaxis: 'y2',
-                        name: '売られ過ぎ(30)',
-                        line: { color: 'rgba(46, 125, 50, 0.45)', width: 1.5 },
+                        name: 'Signal',
+                        line: { color: '#8e24aa', width: 2 },
                     },
                 );
             }
 
             const layout = {
                 height: chartHeight,
-                margin: { l: 55, r: 55, t: 25, b: 90 },
+                margin: { l: 55, r: 65, t: 25, b: 90 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 xaxis: {
@@ -174,11 +165,9 @@
                     fixedrange: false,
                 },
                 yaxis2: {
-                    title: 'RSI',
+                    title: 'MACD',
                     overlaying: 'y',
                     side: 'right',
-                    range: [0, 100],
-                    dtick: 10,
                     showgrid: false,
                     fixedrange: false,
                 },
@@ -192,7 +181,7 @@
                 },
             };
 
-            Plotly.newPlot('priceChart', traces, layout, {
+            Plotly.newPlot('macdChart', traces, layout, {
                 responsive: true,
                 displaylogo: false,
             });

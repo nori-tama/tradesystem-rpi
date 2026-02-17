@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>MACD分析結果ランキング</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
+    <link rel="stylesheet" href="{% static 'rankings_macd.css' %}?v=20260218-1">
+</head>
+<body>
+    <h1>MACD分析結果ランキング</h1>
+    <div class="meta">対象指標: MACD({{ window_short }},{{ window_long }},{{ window_signal }}) / ヒストグラム = MACD - Signal / 対象日: {% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}-{% endif %}</div>
+
+    <div class="filter-bar">
+        <form method="get">
+            <label for="market">市場・商品区分</label>
+            <select id="market" name="market">
+                <option value="">全て</option>
+                {% for market in markets %}
+                <option value="{{ market }}" {% if market == selected_market %}selected{% endif %}>{{ market }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">絞り込み</button>
+            {% if selected_market %}
+            <a class="button subtle" href="{% url 'rankings_macd' %}">クリア</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="ranking-grid">
+        <section class="ranking-panel">
+            <h2>MACD ヒストグラム上位 TOP10</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>順位</th>
+                        <th>コード</th>
+                        <th>銘柄名</th>
+                        <th>市場・商品区分</th>
+                        <th>ヒストグラム</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in macd_top10 %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.market }}</td>
+                        <td>{{ item.histogram|floatformat:4 }}</td>
+                        <td>
+                            <a class="action-link" href="{% url 'stock_macd_chart' item.code %}">📈 MACD</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">データがありません。</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="ranking-panel">
+            <h2>MACD ヒストグラム下位 TOP10</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>順位</th>
+                        <th>コード</th>
+                        <th>銘柄名</th>
+                        <th>市場・商品区分</th>
+                        <th>ヒストグラム</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in macd_bottom10 %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.market }}</td>
+                        <td>{{ item.histogram|floatformat:4 }}</td>
+                        <td>
+                            <a class="action-link" href="{% url 'stock_macd_chart' item.code %}">📈 MACD</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">データがありません。</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <div class="pagination">
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+</body>
+</html>

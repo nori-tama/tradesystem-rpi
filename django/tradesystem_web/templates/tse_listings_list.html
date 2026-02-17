@@ -12,6 +12,7 @@
     <div class="pagination">
         <a class="button" href="{% url 'rankings_ma_estimate' %}">移動平均 推測騰落率ランキング</a>
         <a class="button" href="{% url 'rankings_rsi' %}">RSI分析結果ランキング</a>
+        <a class="button" href="{% url 'rankings_macd' %}">MACD分析結果ランキング</a>
         <a class="button" href="{% url 'rankings_arima_forecast_rate' %}">ARIMA予測 騰落率ランキング</a>
         <a class="button" href="{% url 'results_arima_forecast' %}">ARIMA予測結果一覧</a>
     </div>
@@ -56,6 +57,8 @@
                     <a class="action-link" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
                     /
                     <a class="action-link" href="{% url 'stock_rsi_chart' item.code %}">📈 RSI</a>
+                    /
+                    <a class="action-link" href="{% url 'stock_macd_chart' item.code %}">📈 MACD</a>
                     /
                     <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
                 </td>

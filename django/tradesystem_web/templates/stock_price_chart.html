@@ -35,6 +35,7 @@
     <div class="pagination">
         <a class="button" href="{% url 'stock_arima_forecast_chart' listing.code %}">ARIMA予測グラフへ</a>
         <a class="button" href="{% url 'stock_rsi_chart' listing.code %}">📈 RSI</a>
+        <a class="button" href="{% url 'stock_macd_chart' listing.code %}">📈 MACD</a>
         <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
     </div>
 

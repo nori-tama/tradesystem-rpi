@@ -24,9 +24,11 @@ urlpatterns = [
     path('tse_listings/', views.tse_listings_list, name='tse_listings_list'),
     path('stocks/<str:code>/chart/', views.stock_price_chart, name='stock_price_chart'),
     path('stocks/<str:code>/rsi/', views.stock_rsi_chart, name='stock_rsi_chart'),
+    path('stocks/<str:code>/macd/', views.stock_macd_chart, name='stock_macd_chart'),
     path('stocks/<str:code>/arima-forecast/', views.stock_arima_forecast_chart, name='stock_arima_forecast_chart'),
     path('rankings/ma-estimate/', views.rankings_ma_estimate, name='rankings_ma_estimate'),
     path('rankings/rsi/', views.rankings_rsi, name='rankings_rsi'),
+    path('rankings/macd/', views.rankings_macd, name='rankings_macd'),
     path('rankings/arima-forecast-rate/', views.rankings_arima_forecast_rate, name='rankings_arima_forecast_rate'),
     path('results/arima-forecast/', views.results_arima_forecast, name='results_arima_forecast'),
 ]
