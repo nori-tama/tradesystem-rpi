@@ -1,5 +1,6 @@
 -- RSI (Relative Strength Index) per code/day.
-CREATE TABLE IF NOT EXISTS stock_prices_daily_rsi (
+DROP TABLE IF EXISTS `stock_prices_daily_rsi`;
+CREATE TABLE `stock_prices_daily_rsi` (
     trade_date DATE NOT NULL,
     code VARCHAR(12) NOT NULL,
     `window` INT NOT NULL DEFAULT 14,

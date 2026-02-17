@@ -10,6 +10,8 @@
 
 ## プロジェクト規約
 - データベースのDDLは `ddl/` に配置し、テーブルは事前に作成する。
+- DDLは必ず `DROP TABLE IF EXISTS` の後に `CREATE TABLE` を記述する（`CREATE TABLE IF NOT EXISTS` は使用しない）。
+- DDLのテーブル名/カラム名にはSQL予約語を使用しない。既存仕様上やむを得ず使用する場合は、DDL/DMLの両方でバッククォート（`` ` ``）により必ずエスケープする。
 - データベースを扱うスクリプトでの `CREATE TABLE` は禁止とする。
 - WEBシステムは `django/tradesystem_web` に作成する。
 - スタイルシートは `django/tradesystem_web/css` に配置し、画面デザインを統一する。
