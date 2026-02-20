@@ -1,15 +1,17 @@
--- XGBoost binary signal output per code/day.
-DROP TABLE IF EXISTS `stock_prices_daily_xgb_signal`;
-CREATE TABLE `stock_prices_daily_xgb_signal` (
+-- XGBoost close forecast output per code/day/horizon.
+DROP TABLE IF EXISTS `stock_prices_daily_xgb_forecast`;
+CREATE TABLE `stock_prices_daily_xgb_forecast` (
     trade_date DATE NOT NULL,
     code VARCHAR(12) NOT NULL,
     horizon INT NOT NULL,
     model_version VARCHAR(64) NOT NULL,
     trained_end_date DATE NOT NULL,
-    predicted_prob DOUBLE,
-    predicted_label TINYINT,
-    actual_label TINYINT,
+    base_close DOUBLE,
+    predicted_close DOUBLE,
+    actual_close DOUBLE,
     actual_return DOUBLE,
+    predicted_return DOUBLE,
+    error_rate DOUBLE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (trade_date, code, horizon, model_version),

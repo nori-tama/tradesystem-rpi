@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>XGBoost予測 騰落率ランキング</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
-    <link rel="stylesheet" href="{% static 'rankings_xgb_signal.css' %}?v=20260220-1">
+    <link rel="stylesheet" href="{% static 'rankings_xgb_forecast.css' %}?v=20260220-1">
 </head>
 <body>
     <h1>XGBoost予測 騰落率ランキング</h1>
@@ -13,7 +13,7 @@
         予測日: {% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}-{% endif %}
         / horizon: {% if horizon %}{{ horizon }}{% else %}-{% endif %}
         / model: {% if model_version %}{{ model_version }}{% else %}-{% endif %}
-        / 推測値: (予測上昇確率 - 0.5) × 200
+        / 推測値: 予測騰落率(%) = predicted_return × 100
     </div>
 
     <div class="filter-bar">
@@ -27,7 +27,7 @@
             </select>
             <button type="submit">絞り込み</button>
             {% if selected_market %}
-            <a class="button subtle" href="{% url 'rankings_xgb_signal_rate' %}">クリア</a>
+            <a class="button subtle" href="{% url 'rankings_xgb_forecast_rate' %}">クリア</a>
             {% endif %}
         </form>
     </div>
@@ -55,7 +55,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.forecast_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="button graph-button" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
+                            <a class="button graph-button" href="{% url 'stock_xgb_forecast_chart' item.code %}">📈 XGBoost</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -89,7 +89,7 @@
                         <td>{{ item.market }}</td>
                         <td>{{ item.forecast_rate|floatformat:2 }}</td>
                         <td>
-                            <a class="button graph-button" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
+                            <a class="button graph-button" href="{% url 'stock_xgb_forecast_chart' item.code %}">📈 XGBoost</a>
                         </td>
                     </tr>
                     {% empty %}

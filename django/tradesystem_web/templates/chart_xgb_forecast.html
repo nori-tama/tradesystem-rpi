@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>XGBoost予測グラフ</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-2">
+</head>
+<body>
+    <h1>XGBoost予測グラフ</h1>
+    <table class="chart-meta">
+        <thead>
+            <tr>
+                <th>コード</th>
+                <th>銘柄名</th>
+                <th>市場・商品区分</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ listing.code }}</td>
+                <td>{{ listing.name|default:"-" }}</td>
+                <td>{{ listing.market|default:"-" }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="meta">
+        対象期間: 最新100日 + XGBoost予測({% if latest_horizon %}{{ latest_horizon }}{% else %}-{% endif %}営業日)
+        / 予測基準日: {% if latest_base_date %}{{ latest_base_date|date:"Y-m-d" }}{% else %}-{% endif %}
+        / 学習終了日: {% if trained_end_date %}{{ trained_end_date|date:"Y-m-d" }}{% else %}-{% endif %}
+        / model: {% if latest_model_version %}{{ latest_model_version }}{% else %}-{% endif %}
+    </div>
+
+    {% if price_labels or forecast_labels %}
+    <div id="xgbChart" class="chart-panel"></div>
+    {% else %}
+    <div class="meta">株価またはXGBoost予測データがありません。</div>
+    {% endif %}
+
+    <div class="pagination">
+        <a class="button" href="{% url 'stock_price_chart' listing.code %}">📈 株価</a>
+        <a class="button" href="{% url 'stock_rsi_chart' listing.code %}">📈 RSI</a>
+        <a class="button" href="{% url 'stock_macd_chart' listing.code %}">📈 MACD</a>
+        <a class="button" href="{% url 'stock_arima_forecast_chart' listing.code %}">📈 ARIMA</a>
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+
+    {{ price_labels|json_script:"chart-price-labels" }}
+    {{ open_values|json_script:"chart-open" }}
+    {{ high_values|json_script:"chart-high" }}
+    {{ low_values|json_script:"chart-low" }}
+    {{ close_values|json_script:"chart-close" }}
+    {{ ma5_values|json_script:"chart-ma5" }}
+    {{ ma25_values|json_script:"chart-ma25" }}
+    {{ forecast_labels|json_script:"chart-forecast-labels" }}
+    {{ forecast_values|json_script:"chart-forecast-values" }}
+    {{ monday_tick_labels|json_script:"chart-monday-ticks" }}
+    {{ non_business_day_labels|json_script:"chart-non-business-days" }}
+    {{ missing_plot_day_labels|json_script:"chart-missing-plot-days" }}
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script>
+        const labelsEl = document.getElementById('chart-price-labels');
+        const forecastLabelsEl = document.getElementById('chart-forecast-labels');
+        if (labelsEl && forecastLabelsEl) {
+            const labels = JSON.parse(labelsEl.textContent);
+            const forecastLabels = JSON.parse(forecastLabelsEl.textContent);
+            if (labels.length > 0 || forecastLabels.length > 0) {
+                const rootStyle = getComputedStyle(document.documentElement);
+                const blue700 = rootStyle.getPropertyValue('--blue-700').trim();
+                const blue500 = rootStyle.getPropertyValue('--blue-500').trim();
+                const borderColor = rootStyle.getPropertyValue('--border').trim();
+                const riseRed = '#d32f2f';
+                const ma5Color = rootStyle.getPropertyValue('--ma5-color').trim();
+                const ma25Color = rootStyle.getPropertyValue('--ma25-color').trim();
+                const forecastLineColor = '#8e24aa';
+
+                const openValues = JSON.parse(document.getElementById('chart-open').textContent);
+                const highValues = JSON.parse(document.getElementById('chart-high').textContent);
+                const lowValues = JSON.parse(document.getElementById('chart-low').textContent);
+                const closeValues = JSON.parse(document.getElementById('chart-close').textContent);
+                const ma5Values = JSON.parse(document.getElementById('chart-ma5').textContent);
+                const ma25Values = JSON.parse(document.getElementById('chart-ma25').textContent);
+                const forecastValues = JSON.parse(document.getElementById('chart-forecast-values').textContent);
+                const mondayTickLabels = JSON.parse(document.getElementById('chart-monday-ticks').textContent);
+                const nonBusinessDays = JSON.parse(document.getElementById('chart-non-business-days').textContent);
+                const missingPlotDays = JSON.parse(document.getElementById('chart-missing-plot-days').textContent);
+                const chartPanel = document.getElementById('xgbChart');
+                const chartHeight = chartPanel ? chartPanel.clientHeight : 580;
+
+                const traces = [];
+
+                if (labels.length > 0) {
+                    traces.push(
+                        {
+                            type: 'candlestick',
+                            x: labels,
+                            open: openValues,
+                            high: highValues,
+                            low: lowValues,
+                            close: closeValues,
+                            name: 'ローソク足',
+                            increasing: {
+                                line: { color: riseRed, width: 1 },
+                                fillcolor: riseRed,
+                            },
+                            decreasing: {
+                                line: { color: blue700, width: 1 },
+                                fillcolor: blue500,
+                            },
+                            whiskerwidth: 0.3,
+                            opacity: 1,
+                            yaxis: 'y',
+                        },
+                        {
+                            type: 'scatter',
+                            mode: 'lines',
+                            x: labels,
+                            y: ma5Values,
+                            name: '5日移動平均',
+                            line: { color: ma5Color, width: 2 },
+                            yaxis: 'y'
+                        },
+                        {
+                            type: 'scatter',
+                            mode: 'lines',
+                            x: labels,
+                            y: ma25Values,
+                            name: '25日移動平均',
+                            line: { color: ma25Color, width: 2 },
+                            yaxis: 'y'
+                        },
+                    );
+                }
+
+                if (forecastLabels.length > 0) {
+                    traces.push({
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        x: forecastLabels,
+                        y: forecastValues,
+                        name: 'XGBoost予測終値',
+                        line: { color: forecastLineColor, width: 3 },
+                        marker: { color: forecastLineColor, size: 7 },
+                        yaxis: 'y'
+                    });
+                }
+
+                const layout = {
+                    height: chartHeight,
+                    margin: { l: 55, r: 20, t: 25, b: 90 },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    xaxis: {
+                        type: 'date',
+                        tickmode: 'array',
+                        tickvals: mondayTickLabels,
+                        ticktext: mondayTickLabels,
+                        tickformat: '%Y-%m-%d',
+                        tickangle: 90,
+                        tickfont: { size: 11 },
+                        showgrid: true,
+                        gridcolor: borderColor,
+                        gridwidth: 1.5,
+                        automargin: true,
+                        rangebreaks: [
+                            { values: nonBusinessDays },
+                            { values: missingPlotDays },
+                        ],
+                        rangeslider: { visible: false },
+                    },
+                    yaxis: {
+                        title: '株価',
+                        showgrid: true,
+                        gridcolor: blue700,
+                        gridwidth: 1.2,
+                        griddash: 'dot',
+                        fixedrange: false
+                    },
+                    legend: {
+                        orientation: 'h',
+                        bgcolor: '#ffffff',
+                        x: 1,
+                        y: 1,
+                        xanchor: 'right',
+                        yanchor: 'top',
+                    },
+                };
+
+                const config = {
+                    responsive: true,
+                    displaylogo: false,
+                };
+
+                Plotly.newPlot('xgbChart', traces, layout, config);
+            }
+        }
+    </script>
+</body>
+</html>

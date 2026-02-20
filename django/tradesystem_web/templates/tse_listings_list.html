@@ -14,9 +14,9 @@
         <a class="button" href="{% url 'rankings_rsi' %}">RSI分析結果ランキング</a>
         <a class="button" href="{% url 'rankings_macd' %}">MACD分析結果ランキング</a>
         <a class="button" href="{% url 'rankings_arima_forecast_rate' %}">ARIMA予測 騰落率ランキング</a>
-        <a class="button" href="{% url 'rankings_xgb_signal_rate' %}">XGBoost予測 騰落率ランキング</a>
+        <a class="button" href="{% url 'rankings_xgb_forecast_rate' %}">XGBoost予測 騰落率ランキング</a>
         <a class="button" href="{% url 'results_arima_forecast' %}">ARIMA予測結果一覧</a>
-        <a class="button" href="{% url 'results_xgb_signal' %}">XGBoost予測結果一覧</a>
+        <a class="button" href="{% url 'results_xgb_forecast' %}">XGBoost予測結果一覧</a>
     </div>
     <form method="get" class="filters">
         <label for="code">コード</label>
@@ -63,6 +63,8 @@
                     <a class="action-link" href="{% url 'stock_macd_chart' item.code %}">📈 MACD</a>
                     /
                     <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
+                    /
+                    <a class="button graph-button" href="{% url 'stock_xgb_forecast_chart' item.code %}">📈 XGBoost</a>
                 </td>
             </tr>
             {% empty %}

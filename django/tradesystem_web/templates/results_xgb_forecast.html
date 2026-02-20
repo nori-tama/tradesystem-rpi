@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>XGBoost予測結果一覧</title>
     <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
-    <link rel="stylesheet" href="{% static 'results_xgb_signal.css' %}?v=20260220-1">
+    <link rel="stylesheet" href="{% static 'results_xgb_forecast.css' %}?v=20260220-1">
 </head>
 <body>
     <h1>XGBoost予測結果一覧</h1>
@@ -20,7 +20,7 @@
             </select>
             <button type="submit">絞り込み</button>
             {% if selected_market %}
-            <a class="button subtle" href="{% url 'results_xgb_signal' %}">クリア</a>
+            <a class="button subtle" href="{% url 'results_xgb_forecast' %}">クリア</a>
             {% endif %}
         </form>
     </div>
@@ -38,9 +38,10 @@
                 <th>銘柄名</th>
                 <th>市場・商品区分</th>
                 <th>学習終了日</th>
-                <th>予測確率</th>
-                <th>予測ラベル</th>
-                <th>実測ラベル</th>
+                <th>基準終値</th>
+                <th>予測終値</th>
+                <th>実測終値</th>
+                <th>予測騰落率</th>
                 <th>実測騰落率</th>
                 <th>操作</th>
             </tr>
@@ -52,17 +53,18 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.market }}</td>
                 <td>{% if item.trained_end_date %}{{ item.trained_end_date|date:"Y-m-d" }}{% else %}-{% endif %}</td>
-                <td>{% if item.predicted_prob is not None %}{{ item.predicted_prob|floatformat:4 }}{% else %}-{% endif %}</td>
-                <td>{% if item.predicted_label is not None %}{{ item.predicted_label }}{% else %}-{% endif %}</td>
-                <td>{% if item.actual_label is not None %}{{ item.actual_label }}{% else %}-{% endif %}</td>
+                <td>{% if item.base_close is not None %}{{ item.base_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>{% if item.predicted_close is not None %}{{ item.predicted_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>{% if item.actual_close is not None %}{{ item.actual_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>{% if item.predicted_return is not None %}{{ item.predicted_return|floatformat:4 }}{% else %}-{% endif %}</td>
                 <td>{% if item.actual_return is not None %}{{ item.actual_return|floatformat:4 }}{% else %}-{% endif %}</td>
                 <td>
-                    <a class="button graph-button" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
+                    <a class="button graph-button" href="{% url 'stock_xgb_forecast_chart' item.code %}">📈 XGBoost</a>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="9">XGBoost予測データがありません。</td>
+                <td colspan="10">XGBoost予測データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>

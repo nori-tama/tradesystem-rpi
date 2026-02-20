@@ -3,7 +3,7 @@ from django.db import connection
 from django.shortcuts import render
 
 
-def rankings_xgb_signal_rate(request):
+def rankings_xgb_forecast_rate(request):
     selected_market = (request.GET.get("market") or "").strip()
 
     with connection.cursor() as cursor:
@@ -20,7 +20,7 @@ def rankings_xgb_signal_rate(request):
         cursor.execute(
             """
             SELECT trade_date, horizon, model_version
-            FROM stock_prices_daily_xgb_signal
+            FROM stock_prices_daily_xgb_forecast
             ORDER BY trade_date DESC, updated_at DESC
             LIMIT 1
             """
@@ -34,7 +34,7 @@ def rankings_xgb_signal_rate(request):
     if latest_trade_date is None:
         return render(
             request,
-            "rankings_xgb_signal.html",
+            "rankings_xgb_forecast.html",
             {
                 "rise_top10": [],
                 "fall_top10": [],
@@ -47,12 +47,12 @@ def rankings_xgb_signal_rate(request):
         )
 
     cache_key = (
-        f'rankings_xgb_signal_rate:{latest_trade_date}:{latest_horizon}:{latest_model_version}:'
+        f'rankings_xgb_forecast_rate:{latest_trade_date}:{latest_horizon}:{latest_model_version}:'
         f'market:{selected_market or "all"}'
     )
     cached_context = cache.get(cache_key)
     if cached_context is not None:
-        return render(request, "rankings_xgb_signal.html", cached_context)
+        return render(request, "rankings_xgb_forecast.html", cached_context)
 
     with connection.cursor() as cursor:
         base_sql = """
@@ -60,10 +60,12 @@ def rankings_xgb_signal_rate(request):
                 x.code,
                 l.name,
                 l.market,
-                x.predicted_prob,
-                x.predicted_label,
-                ((x.predicted_prob - 0.5) * 200) AS forecast_rate
-            FROM stock_prices_daily_xgb_signal x
+                x.predicted_close,
+                x.actual_close,
+                x.predicted_return,
+                x.actual_return,
+                (x.predicted_return * 100) AS forecast_rate
+            FROM stock_prices_daily_xgb_forecast x
             JOIN (
                 SELECT t.code, t.name, t.market
                 FROM tse_listings t
@@ -78,7 +80,7 @@ def rankings_xgb_signal_rate(request):
             WHERE x.trade_date = %s
               AND x.horizon = %s
               AND x.model_version = %s
-              AND x.predicted_prob IS NOT NULL
+              AND x.predicted_return IS NOT NULL
         """
 
         rise_params = [latest_trade_date, latest_horizon, latest_model_version]
@@ -98,27 +100,31 @@ def rankings_xgb_signal_rate(request):
         fall_rows = cursor.fetchall()
 
     rise_top10 = []
-    for code, name, market, predicted_prob, predicted_label, forecast_rate in rise_rows:
+    for code, name, market, predicted_close, actual_close, predicted_return, actual_return, forecast_rate in rise_rows:
         rise_top10.append(
             {
                 "code": code,
                 "name": name or "-",
                 "market": market or "-",
-                "predicted_prob": float(predicted_prob),
-                "predicted_label": int(predicted_label) if predicted_label is not None else None,
+                "predicted_close": float(predicted_close) if predicted_close is not None else None,
+                "actual_close": float(actual_close) if actual_close is not None else None,
+                "predicted_return": float(predicted_return) if predicted_return is not None else None,
+                "actual_return": float(actual_return) if actual_return is not None else None,
                 "forecast_rate": float(forecast_rate),
             }
         )
 
     fall_top10 = []
-    for code, name, market, predicted_prob, predicted_label, forecast_rate in fall_rows:
+    for code, name, market, predicted_close, actual_close, predicted_return, actual_return, forecast_rate in fall_rows:
         fall_top10.append(
             {
                 "code": code,
                 "name": name or "-",
                 "market": market or "-",
-                "predicted_prob": float(predicted_prob),
-                "predicted_label": int(predicted_label) if predicted_label is not None else None,
+                "predicted_close": float(predicted_close) if predicted_close is not None else None,
+                "actual_close": float(actual_close) if actual_close is not None else None,
+                "predicted_return": float(predicted_return) if predicted_return is not None else None,
+                "actual_return": float(actual_return) if actual_return is not None else None,
                 "forecast_rate": float(forecast_rate),
             }
         )
@@ -134,4 +140,4 @@ def rankings_xgb_signal_rate(request):
     }
     cache.set(cache_key, context, 300)
 
-    return render(request, "rankings_xgb_signal.html", context)
+    return render(request, "rankings_xgb_forecast.html", context)
