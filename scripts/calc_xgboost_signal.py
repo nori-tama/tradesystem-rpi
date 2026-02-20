@@ -342,6 +342,31 @@ def make_persist_rows(
     return rows
 
 
+def make_future_persist_row(
+    trade_date,
+    code: str,
+    horizon: int,
+    model_version: str,
+    trained_end_date,
+    base_close: float,
+    predicted_close: float,
+) -> Tuple:
+    predicted_return = ((predicted_close / base_close) - 1.0) if base_close else None
+    return (
+        trade_date,
+        code,
+        horizon,
+        model_version,
+        trained_end_date,
+        base_close,
+        predicted_close,
+        None,
+        None,
+        float(predicted_return) if predicted_return is not None else None,
+        None,
+    )
+
+
 def upsert_rows(
     conn: pymysql.Connection,
     table: str,
@@ -396,6 +421,16 @@ def process_one_code(
         logger.warning("[%s] 特徴量データが0件のためスキップします。", code)
         return {"status": 0.0, "affected": 0.0, "horizon_count": 0.0}
 
+    latest_feature_candidates = feature_dataset.dropna(subset=FEATURE_COLUMNS + ["close"]).copy()
+    if latest_feature_candidates.empty:
+        logger.warning("[%s] 最新予測に使える特徴量行がないためスキップします。", code)
+        return {"status": 0.0, "affected": 0.0, "horizon_count": 0.0}
+    latest_feature_candidates = latest_feature_candidates.sort_values("trade_date")
+    latest_feature_row = latest_feature_candidates.iloc[-1]
+    latest_trade_date = latest_feature_row["trade_date"].date()
+    latest_base_close = float(latest_feature_row["close"])
+    latest_feature_matrix = pd.DataFrame([latest_feature_row[FEATURE_COLUMNS]])
+
     affected_total = 0
     metrics_per_horizon: List[Dict[str, float]] = []
 
@@ -449,6 +484,41 @@ def process_one_code(
         affected = upsert_rows(conn, TARGET_TABLE, rows)
         affected_total += affected
         logger.info("[%s][h=%d] 予測保存件数(affected rows): %d", code, horizon, affected)
+
+        full_matrix = dataset.dropna(subset=FEATURE_COLUMNS + [TARGET_COLUMN]).copy()
+        if len(full_matrix) < MIN_TRAIN_ROWS:
+            logger.warning(
+                "[%s][h=%d] 最新予測用の全量学習データ不足: %d < min-train-rows(%d)",
+                code,
+                horizon,
+                len(full_matrix),
+                MIN_TRAIN_ROWS,
+            )
+            metrics_per_horizon.append(metrics)
+            continue
+
+        future_model = build_model()
+        future_model.fit(full_matrix[FEATURE_COLUMNS], full_matrix[TARGET_COLUMN].astype(float))
+        future_pred_close = float(future_model.predict(latest_feature_matrix)[0])
+        future_trained_end_date = full_matrix["trade_date"].max().date()
+        future_row = make_future_persist_row(
+            latest_trade_date,
+            code,
+            horizon,
+            MODEL_VERSION,
+            future_trained_end_date,
+            latest_base_close,
+            future_pred_close,
+        )
+        future_affected = upsert_rows(conn, TARGET_TABLE, [future_row])
+        affected_total += future_affected
+        logger.info(
+            "[%s][h=%d] 最新基準日(%s)→将来予測保存(affected rows): %d",
+            code,
+            horizon,
+            latest_trade_date,
+            future_affected,
+        )
 
         metrics_per_horizon.append(metrics)
 

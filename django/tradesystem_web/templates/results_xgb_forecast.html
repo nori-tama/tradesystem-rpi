@@ -26,7 +26,6 @@
     </div>
     <div class="meta">
         予測日: {% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}-{% endif %}
-        / horizon: {% if horizon %}{{ horizon }}{% else %}-{% endif %}
         / model: {% if model_version %}{{ model_version }}{% else %}-{% endif %}
         / 件数: {{ page_obj.paginator.count }} ({{ page_obj.number }} / {{ page_obj.paginator.num_pages }}ページ)
     </div>
@@ -38,11 +37,12 @@
                 <th>銘柄名</th>
                 <th>市場・商品区分</th>
                 <th>学習終了日</th>
-                <th>基準終値</th>
-                <th>予測終値</th>
-                <th>実測終値</th>
-                <th>予測騰落率</th>
-                <th>実測騰落率</th>
+                <th>予測基準日<br>{% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h1_date %}{{ header_h1_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h2_date %}{{ header_h2_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h4_date %}{{ header_h4_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
+                <th>予測日<br>{% if header_h5_date %}{{ header_h5_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>操作</th>
             </tr>
         </thead>
@@ -54,17 +54,18 @@
                 <td>{{ item.market }}</td>
                 <td>{% if item.trained_end_date %}{{ item.trained_end_date|date:"Y-m-d" }}{% else %}-{% endif %}</td>
                 <td>{% if item.base_close is not None %}{{ item.base_close|floatformat:2 }}{% else %}-{% endif %}</td>
-                <td>{% if item.predicted_close is not None %}{{ item.predicted_close|floatformat:2 }}{% else %}-{% endif %}</td>
-                <td>{% if item.actual_close is not None %}{{ item.actual_close|floatformat:2 }}{% else %}-{% endif %}</td>
-                <td>{% if item.predicted_return is not None %}{{ item.predicted_return|floatformat:4 }}{% else %}-{% endif %}</td>
-                <td>{% if item.actual_return is not None %}{{ item.actual_return|floatformat:4 }}{% else %}-{% endif %}</td>
+                <td>{% if item.h1_close is not None %}{{ item.h1_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>{% if item.h2_close is not None %}{{ item.h2_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>{% if item.h3_close is not None %}{{ item.h3_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>{% if item.h4_close is not None %}{{ item.h4_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>{% if item.h5_close is not None %}{{ item.h5_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>
                     <a class="button graph-button" href="{% url 'stock_xgb_forecast_chart' item.code %}">📈 XGBoost</a>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="10">XGBoost予測データがありません。</td>
+                <td colspan="11">XGBoost予測データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>
