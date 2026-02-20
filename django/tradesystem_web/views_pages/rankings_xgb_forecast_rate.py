@@ -5,6 +5,7 @@ from django.shortcuts import render
 
 def rankings_xgb_forecast_rate(request):
     selected_market = (request.GET.get("market") or "").strip()
+    ranking_horizon = 5
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -19,17 +20,19 @@ def rankings_xgb_forecast_rate(request):
 
         cursor.execute(
             """
-            SELECT trade_date, horizon, model_version
+            SELECT trade_date, model_version
             FROM stock_prices_daily_xgb_forecast
+            WHERE horizon = %s
             ORDER BY trade_date DESC, updated_at DESC
             LIMIT 1
-            """
+            """,
+            [ranking_horizon],
         )
         latest_row = cursor.fetchone()
 
     latest_trade_date = latest_row[0] if latest_row else None
-    latest_horizon = latest_row[1] if latest_row else None
-    latest_model_version = latest_row[2] if latest_row else None
+    latest_horizon = ranking_horizon if latest_row else None
+    latest_model_version = latest_row[1] if latest_row else None
 
     if latest_trade_date is None:
         return render(

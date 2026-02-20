@@ -421,15 +421,22 @@ def process_one_code(
         logger.warning("[%s] 特徴量データが0件のためスキップします。", code)
         return {"status": 0.0, "affected": 0.0, "horizon_count": 0.0}
 
-    latest_feature_candidates = feature_dataset.dropna(subset=FEATURE_COLUMNS + ["close"]).copy()
-    if latest_feature_candidates.empty:
-        logger.warning("[%s] 最新予測に使える特徴量行がないためスキップします。", code)
+    latest_rows = feature_dataset.dropna(subset=["close"]).copy()
+    if latest_rows.empty:
+        logger.warning("[%s] 最新株価行がないためスキップします。", code)
         return {"status": 0.0, "affected": 0.0, "horizon_count": 0.0}
-    latest_feature_candidates = latest_feature_candidates.sort_values("trade_date")
-    latest_feature_row = latest_feature_candidates.iloc[-1]
+
+    latest_rows = latest_rows.sort_values("trade_date")
+    latest_feature_row = latest_rows.iloc[-1]
     latest_trade_date = latest_feature_row["trade_date"].date()
     latest_base_close = float(latest_feature_row["close"])
-    latest_feature_matrix = pd.DataFrame([latest_feature_row[FEATURE_COLUMNS]])
+
+    filled_features = feature_dataset.sort_values("trade_date")[FEATURE_COLUMNS].ffill().bfill()
+    latest_feature_values = filled_features.iloc[-1]
+    if latest_feature_values.isna().any():
+        logger.warning("[%s] 最新株価日の特徴量補完後も欠損が残るためスキップします。", code)
+        return {"status": 0.0, "affected": 0.0, "horizon_count": 0.0}
+    latest_feature_matrix = pd.DataFrame([latest_feature_values], columns=FEATURE_COLUMNS)
 
     affected_total = 0
     metrics_per_horizon: List[Dict[str, float]] = []
