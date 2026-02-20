@@ -1,15 +1,20 @@
+{% extends 'base_layout.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="utf-8">
-    <title>ARIMA予測 騰落率ランキング</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
-    <link rel="stylesheet" href="{% static 'rankings_arima_forecast.css' %}?v=20260215-2">
-</head>
-<body>
-    <h1>ARIMA予測 騰落率ランキング</h1>
+
+{% block title %}ARIMA予測 騰落率ランキング{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'rankings_arima_forecast.css' %}?v=20260215-2">
+{% endblock %}
+
+{% block content %}
+    <h1>ARIMA予測 騰落率ランキング（{{ ranking_direction_label }} TOP10）</h1>
     <div class="meta">基準日: {% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}-{% endif %} / 推測値: (5営業日後予測終値 - 予測基準日終値) / 予測基準日終値 × 100</div>
+
+    <div class="pagination">
+        <a class="button" href="{% url 'rankings_arima_forecast_rate_top' %}{% if selected_market %}?market={{ selected_market }}{% endif %}">上位 TOP10</a>
+        <a class="button" href="{% url 'rankings_arima_forecast_rate_bottom' %}{% if selected_market %}?market={{ selected_market }}{% endif %}">下位 TOP10</a>
+    </div>
 
     <div class="filter-bar">
         <form method="get">
@@ -22,83 +27,46 @@
             </select>
             <button type="submit">絞り込み</button>
             {% if selected_market %}
-            <a class="button subtle" href="{% url 'rankings_arima_forecast_rate' %}">クリア</a>
+                {% if ranking_direction == 'top' %}
+                <a class="button subtle" href="{% url 'rankings_arima_forecast_rate_top' %}">クリア</a>
+                {% else %}
+                <a class="button subtle" href="{% url 'rankings_arima_forecast_rate_bottom' %}">クリア</a>
+                {% endif %}
             {% endif %}
         </form>
     </div>
 
-    <div class="ranking-grid">
-        <section class="ranking-panel">
-            <h2>値上がり率 TOP10</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>順位</th>
-                        <th>コード</th>
-                        <th>銘柄名</th>
-                        <th>市場・商品区分</th>
-                        <th>値上がり率(%)</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in rise_top10 %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ item.code }}</td>
-                        <td>{{ item.name }}</td>
-                        <td>{{ item.market }}</td>
-                        <td>{{ item.forecast_rate|floatformat:2 }}</td>
-                        <td>
-                            <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6">データがありません。</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
+    <section class="ranking-panel">
+        <table>
+            <thead>
+                <tr>
+                    <th>順位</th>
+                    <th>コード</th>
+                    <th>銘柄名</th>
+                    <th>市場・商品区分</th>
+                    <th>推測値(%)</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ranking_rows %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.code }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.market }}</td>
+                    <td>{{ item.score|floatformat:2 }}</td>
+                    <td>
+                        <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">データがありません。</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
 
-        <section class="ranking-panel">
-            <h2>値下がり率 TOP10</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>順位</th>
-                        <th>コード</th>
-                        <th>銘柄名</th>
-                        <th>市場・商品区分</th>
-                        <th>値下がり率(%)</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in fall_top10 %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ item.code }}</td>
-                        <td>{{ item.name }}</td>
-                        <td>{{ item.market }}</td>
-                        <td>{{ item.forecast_rate|floatformat:2 }}</td>
-                        <td>
-                            <a class="button graph-button" href="{% url 'stock_arima_forecast_chart' item.code %}">📈 ARIMA</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6">データがありません。</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
-    </div>
-
-    <div class="pagination">
-        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
-    </div>
-</body>
-</html>
+{% endblock %}

@@ -3,8 +3,9 @@ from django.db import connection
 from django.shortcuts import render
 
 
-def rankings_ma_estimate(request):
+def _rankings_ma_estimate(request, direction):
     selected_market = (request.GET.get("market") or "").strip()
+    is_top = direction == 'top'
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -30,10 +31,14 @@ def rankings_ma_estimate(request):
                 'fall_top10': [],
                 'markets': markets,
                 'selected_market': selected_market,
+                'ranking_direction_label': '上位' if is_top else '下位',
+                'ranking_rows': [],
             },
         )
 
-    cache_key = f'rankings_ma_estimate:{latest_trade_date}:market:{selected_market or "all"}'
+    cache_key = (
+        f'rankings_ma_estimate:{direction}:{latest_trade_date}:market:{selected_market or "all"}'
+    )
     cached_context = cache.get(cache_key)
     if cached_context is not None:
         return render(request, 'rankings_ma_estimate.html', cached_context)
@@ -76,15 +81,14 @@ def rankings_ma_estimate(request):
         rise_sql = base_sql + " ORDER BY estimate_rate DESC LIMIT 10"
         fall_sql = base_sql + " ORDER BY estimate_rate ASC LIMIT 10"
 
-        cursor.execute(rise_sql, rise_params)
-        rise_rows = cursor.fetchall()
+        ranking_sql = rise_sql if is_top else fall_sql
+        ranking_params = rise_params if is_top else fall_params
+        cursor.execute(ranking_sql, ranking_params)
+        ranking_rows_raw = cursor.fetchall()
 
-        cursor.execute(fall_sql, fall_params)
-        fall_rows = cursor.fetchall()
-
-    rise_top10 = []
-    for code, trade_date, ma5, ma25, estimate_rate, name, market in rise_rows:
-        rise_top10.append(
+    ranking_rows = []
+    for code, trade_date, ma5, ma25, estimate_rate, name, market in ranking_rows_raw:
+        ranking_rows.append(
             {
                 'code': code,
                 'name': name or '-',
@@ -93,29 +97,29 @@ def rankings_ma_estimate(request):
                 'ma5': float(ma5),
                 'ma25': float(ma25),
                 'estimate_rate': float(estimate_rate),
-            }
-        )
-
-    fall_top10 = []
-    for code, trade_date, ma5, ma25, estimate_rate, name, market in fall_rows:
-        fall_top10.append(
-            {
-                'code': code,
-                'name': name or '-',
-                'market': market or '-',
-                'trade_date': trade_date,
-                'ma5': float(ma5),
-                'ma25': float(ma25),
-                'estimate_rate': float(estimate_rate),
+                'score': float(estimate_rate),
             }
         )
 
     context = {
-        'rise_top10': rise_top10,
-        'fall_top10': fall_top10,
+        'ranking_rows': ranking_rows,
+        'ranking_direction': direction,
+        'ranking_direction_label': '上位' if is_top else '下位',
         'markets': markets,
         'selected_market': selected_market,
     }
     cache.set(cache_key, context, 300)
 
     return render(request, 'rankings_ma_estimate.html', context)
+
+
+def rankings_ma_estimate_top(request):
+    return _rankings_ma_estimate(request, 'top')
+
+
+def rankings_ma_estimate_bottom(request):
+    return _rankings_ma_estimate(request, 'bottom')
+
+
+def rankings_ma_estimate(request):
+    return rankings_ma_estimate_top(request)

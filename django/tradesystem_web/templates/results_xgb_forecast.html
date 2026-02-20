@@ -1,13 +1,13 @@
+{% extends 'base_layout.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="utf-8">
-    <title>XGBoost予測結果一覧</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
-    <link rel="stylesheet" href="{% static 'results_xgb_forecast.css' %}?v=20260220-1">
-</head>
-<body>
+
+{% block title %}XGBoost予測結果一覧{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'results_xgb_forecast.css' %}?v=20260220-1">
+{% endblock %}
+
+{% block content %}
     <h1>XGBoost予測結果一覧</h1>
     <div class="filter-bar">
         <form method="get">
@@ -82,7 +82,5 @@
         {% else %}
             <span class="button disabled">次ページ</span>
         {% endif %}
-        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
     </div>
-</body>
-</html>
+{% endblock %}

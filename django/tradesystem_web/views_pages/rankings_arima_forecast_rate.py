@@ -3,8 +3,9 @@ from django.db import connection
 from django.shortcuts import render
 
 
-def rankings_arima_forecast_rate(request):
+def _rankings_arima_forecast_rate(request, direction):
     selected_market = (request.GET.get("market") or "").strip()
+    is_top = direction == 'top'
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -36,11 +37,13 @@ def rankings_arima_forecast_rate(request):
                 'markets': markets,
                 'selected_market': selected_market,
                 'forecast_base_date': None,
+                'ranking_direction_label': '上位' if is_top else '下位',
+                'ranking_rows': [],
             },
         )
 
     cache_key = (
-        f'rankings_arima_forecast_rate:{latest_base_date}:market:{selected_market or "all"}'
+        f'rankings_arima_forecast_rate:{direction}:{latest_base_date}:market:{selected_market or "all"}'
     )
     cached_context = cache.get(cache_key)
     if cached_context is not None:
@@ -87,15 +90,14 @@ def rankings_arima_forecast_rate(request):
         rise_sql = base_sql + " ORDER BY forecast_rate DESC LIMIT 10"
         fall_sql = base_sql + " ORDER BY forecast_rate ASC LIMIT 10"
 
-        cursor.execute(rise_sql, rise_params)
-        rise_rows = cursor.fetchall()
+        ranking_sql = rise_sql if is_top else fall_sql
+        ranking_params = rise_params if is_top else fall_params
+        cursor.execute(ranking_sql, ranking_params)
+        ranking_rows_raw = cursor.fetchall()
 
-        cursor.execute(fall_sql, fall_params)
-        fall_rows = cursor.fetchall()
-
-    rise_top10 = []
-    for code, name, market, base_close, predicted_close, forecast_rate in rise_rows:
-        rise_top10.append(
+    ranking_rows = []
+    for code, name, market, base_close, predicted_close, forecast_rate in ranking_rows_raw:
+        ranking_rows.append(
             {
                 'code': code,
                 'name': name or '-',
@@ -103,25 +105,14 @@ def rankings_arima_forecast_rate(request):
                 'base_close': float(base_close),
                 'predicted_close': float(predicted_close),
                 'forecast_rate': float(forecast_rate),
-            }
-        )
-
-    fall_top10 = []
-    for code, name, market, base_close, predicted_close, forecast_rate in fall_rows:
-        fall_top10.append(
-            {
-                'code': code,
-                'name': name or '-',
-                'market': market or '-',
-                'base_close': float(base_close),
-                'predicted_close': float(predicted_close),
-                'forecast_rate': float(forecast_rate),
+                'score': float(forecast_rate),
             }
         )
 
     context = {
-        'rise_top10': rise_top10,
-        'fall_top10': fall_top10,
+        'ranking_rows': ranking_rows,
+        'ranking_direction': direction,
+        'ranking_direction_label': '上位' if is_top else '下位',
         'markets': markets,
         'selected_market': selected_market,
         'forecast_base_date': latest_base_date,
@@ -129,3 +120,15 @@ def rankings_arima_forecast_rate(request):
     cache.set(cache_key, context, 300)
 
     return render(request, 'rankings_arima_forecast.html', context)
+
+
+def rankings_arima_forecast_rate_top(request):
+    return _rankings_arima_forecast_rate(request, 'top')
+
+
+def rankings_arima_forecast_rate_bottom(request):
+    return _rankings_arima_forecast_rate(request, 'bottom')
+
+
+def rankings_arima_forecast_rate(request):
+    return rankings_arima_forecast_rate_top(request)

@@ -3,8 +3,9 @@ from django.db import connection
 from django.shortcuts import render
 
 
-def rankings_xgb_forecast_rate(request):
+def _rankings_xgb_forecast_rate(request, direction):
     selected_market = (request.GET.get("market") or "").strip()
+    is_top = direction == 'top'
     ranking_horizon = 5
 
     with connection.cursor() as cursor:
@@ -46,11 +47,13 @@ def rankings_xgb_forecast_rate(request):
                 "trade_date": None,
                 "horizon": None,
                 "model_version": None,
+                "ranking_direction_label": '上位' if is_top else '下位',
+                "ranking_rows": [],
             },
         )
 
     cache_key = (
-        f'rankings_xgb_forecast_rate:{latest_trade_date}:{latest_horizon}:{latest_model_version}:'
+        f'rankings_xgb_forecast_rate:{direction}:{latest_trade_date}:{latest_horizon}:{latest_model_version}:'
         f'market:{selected_market or "all"}'
     )
     cached_context = cache.get(cache_key)
@@ -96,15 +99,14 @@ def rankings_xgb_forecast_rate(request):
         rise_sql = base_sql + " ORDER BY forecast_rate DESC LIMIT 10"
         fall_sql = base_sql + " ORDER BY forecast_rate ASC LIMIT 10"
 
-        cursor.execute(rise_sql, rise_params)
-        rise_rows = cursor.fetchall()
+        ranking_sql = rise_sql if is_top else fall_sql
+        ranking_params = rise_params if is_top else fall_params
+        cursor.execute(ranking_sql, ranking_params)
+        ranking_rows_raw = cursor.fetchall()
 
-        cursor.execute(fall_sql, fall_params)
-        fall_rows = cursor.fetchall()
-
-    rise_top10 = []
-    for code, name, market, predicted_close, actual_close, predicted_return, actual_return, forecast_rate in rise_rows:
-        rise_top10.append(
+    ranking_rows = []
+    for code, name, market, predicted_close, actual_close, predicted_return, actual_return, forecast_rate in ranking_rows_raw:
+        ranking_rows.append(
             {
                 "code": code,
                 "name": name or "-",
@@ -114,27 +116,14 @@ def rankings_xgb_forecast_rate(request):
                 "predicted_return": float(predicted_return) if predicted_return is not None else None,
                 "actual_return": float(actual_return) if actual_return is not None else None,
                 "forecast_rate": float(forecast_rate),
-            }
-        )
-
-    fall_top10 = []
-    for code, name, market, predicted_close, actual_close, predicted_return, actual_return, forecast_rate in fall_rows:
-        fall_top10.append(
-            {
-                "code": code,
-                "name": name or "-",
-                "market": market or "-",
-                "predicted_close": float(predicted_close) if predicted_close is not None else None,
-                "actual_close": float(actual_close) if actual_close is not None else None,
-                "predicted_return": float(predicted_return) if predicted_return is not None else None,
-                "actual_return": float(actual_return) if actual_return is not None else None,
-                "forecast_rate": float(forecast_rate),
+                "score": float(forecast_rate),
             }
         )
 
     context = {
-        "rise_top10": rise_top10,
-        "fall_top10": fall_top10,
+        "ranking_rows": ranking_rows,
+        "ranking_direction": direction,
+        "ranking_direction_label": '上位' if is_top else '下位',
         "markets": markets,
         "selected_market": selected_market,
         "trade_date": latest_trade_date,
@@ -144,3 +133,15 @@ def rankings_xgb_forecast_rate(request):
     cache.set(cache_key, context, 300)
 
     return render(request, "rankings_xgb_forecast.html", context)
+
+
+def rankings_xgb_forecast_rate_top(request):
+    return _rankings_xgb_forecast_rate(request, 'top')
+
+
+def rankings_xgb_forecast_rate_bottom(request):
+    return _rankings_xgb_forecast_rate(request, 'bottom')
+
+
+def rankings_xgb_forecast_rate(request):
+    return rankings_xgb_forecast_rate_top(request)

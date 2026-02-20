@@ -1,23 +1,14 @@
+{% extends 'base_layout.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>東証上場銘柄一覧</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
-    <link rel="stylesheet" href="{% static 'tse_listings_list.css' %}?v=20260214-2">
-</head>
-<body>
+
+{% block title %}東証上場銘柄一覧{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'tse_listings_list.css' %}?v=20260214-2">
+{% endblock %}
+
+{% block content %}
     <h1>東証上場銘柄一覧</h1>
-    <div class="pagination">
-        <a class="button" href="{% url 'rankings_ma_estimate' %}">移動平均 推測騰落率ランキング</a>
-        <a class="button" href="{% url 'rankings_rsi' %}">RSI分析結果ランキング</a>
-        <a class="button" href="{% url 'rankings_macd' %}">MACD分析結果ランキング</a>
-        <a class="button" href="{% url 'rankings_arima_forecast_rate' %}">ARIMA予測 騰落率ランキング</a>
-        <a class="button" href="{% url 'rankings_xgb_forecast_rate' %}">XGBoost予測 騰落率ランキング</a>
-        <a class="button" href="{% url 'results_arima_forecast' %}">ARIMA予測結果一覧</a>
-        <a class="button" href="{% url 'results_xgb_forecast' %}">XGBoost予測結果一覧</a>
-    </div>
     <form method="get" class="filters">
         <label for="code">コード</label>
         <input id="code" name="code" type="text" value="{{ selected_code }}" placeholder="例: 7203">
@@ -86,5 +77,4 @@
             <span class="button disabled">次ページ</span>
         {% endif %}
     </div>
-</body>
-</html>
+{% endblock %}

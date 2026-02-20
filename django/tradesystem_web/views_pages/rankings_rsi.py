@@ -3,8 +3,9 @@ from django.db import connection
 from django.shortcuts import render
 
 
-def rankings_rsi(request):
+def _rankings_rsi(request, direction):
     selected_market = (request.GET.get("market") or "").strip()
+    is_top = direction == 'top'
     window = 14
 
     with connection.cursor() as cursor:
@@ -39,10 +40,14 @@ def rankings_rsi(request):
                 'markets': markets,
                 'selected_market': selected_market,
                 'window': window,
+                'ranking_direction_label': '上位' if is_top else '下位',
+                'ranking_rows': [],
             },
         )
 
-    cache_key = f'rankings_rsi:{latest_trade_date}:window:{window}:market:{selected_market or "all"}'
+    cache_key = (
+        f'rankings_rsi:{direction}:{latest_trade_date}:window:{window}:market:{selected_market or "all"}'
+    )
     cached_context = cache.get(cache_key)
     if cached_context is not None:
         return render(request, 'rankings_rsi.html', cached_context)
@@ -82,39 +87,28 @@ def rankings_rsi(request):
         top_sql = base_sql + " ORDER BY r.rsi DESC LIMIT 10"
         bottom_sql = base_sql + " ORDER BY r.rsi ASC LIMIT 10"
 
-        cursor.execute(top_sql, top_params)
-        top_rows = cursor.fetchall()
+        ranking_sql = top_sql if is_top else bottom_sql
+        ranking_params = top_params if is_top else bottom_params
+        cursor.execute(ranking_sql, ranking_params)
+        ranking_rows_raw = cursor.fetchall()
 
-        cursor.execute(bottom_sql, bottom_params)
-        bottom_rows = cursor.fetchall()
-
-    rsi_top10 = []
-    for code, trade_date, rsi, name, market in top_rows:
-        rsi_top10.append(
+    ranking_rows = []
+    for code, trade_date, rsi, name, market in ranking_rows_raw:
+        ranking_rows.append(
             {
                 'code': code,
                 'name': name or '-',
                 'market': market or '-',
                 'trade_date': trade_date,
                 'rsi': float(rsi),
-            }
-        )
-
-    rsi_bottom10 = []
-    for code, trade_date, rsi, name, market in bottom_rows:
-        rsi_bottom10.append(
-            {
-                'code': code,
-                'name': name or '-',
-                'market': market or '-',
-                'trade_date': trade_date,
-                'rsi': float(rsi),
+                'score': float(rsi),
             }
         )
 
     context = {
-        'rsi_top10': rsi_top10,
-        'rsi_bottom10': rsi_bottom10,
+        'ranking_rows': ranking_rows,
+        'ranking_direction': direction,
+        'ranking_direction_label': '上位' if is_top else '下位',
         'markets': markets,
         'selected_market': selected_market,
         'window': window,
@@ -122,3 +116,15 @@ def rankings_rsi(request):
     cache.set(cache_key, context, 300)
 
     return render(request, 'rankings_rsi.html', context)
+
+
+def rankings_rsi_top(request):
+    return _rankings_rsi(request, 'top')
+
+
+def rankings_rsi_bottom(request):
+    return _rankings_rsi(request, 'bottom')
+
+
+def rankings_rsi(request):
+    return rankings_rsi_top(request)

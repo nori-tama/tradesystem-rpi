@@ -1,0 +1,45 @@
+<h2 class="menu-title">メニュー</h2>
+
+<section class="menu-section">
+    <h2>一覧</h2>
+    <ul class="menu-list">
+        <li><a href="{% url 'tse_listings_list' %}">東証上場銘柄一覧</a></li>
+    </ul>
+</section>
+
+<section class="menu-section">
+    <h2>ランキング</h2>
+    <ul class="menu-list">
+        <li><a href="{% url 'rankings_ma_estimate_top' %}">移動平均 上位 TOP10</a></li>
+        <li><a href="{% url 'rankings_ma_estimate_bottom' %}">移動平均 下位 TOP10</a></li>
+        <li><a href="{% url 'rankings_rsi_top' %}">RSI 上位 TOP10</a></li>
+        <li><a href="{% url 'rankings_rsi_bottom' %}">RSI 下位 TOP10</a></li>
+        <li><a href="{% url 'rankings_macd_top' %}">MACD 上位 TOP10</a></li>
+        <li><a href="{% url 'rankings_macd_bottom' %}">MACD 下位 TOP10</a></li>
+        <li><a href="{% url 'rankings_arima_forecast_rate_top' %}">ARIMA 上位 TOP10</a></li>
+        <li><a href="{% url 'rankings_arima_forecast_rate_bottom' %}">ARIMA 下位 TOP10</a></li>
+        <li><a href="{% url 'rankings_xgb_forecast_rate_top' %}">XGBoost 上位 TOP10</a></li>
+        <li><a href="{% url 'rankings_xgb_forecast_rate_bottom' %}">XGBoost 下位 TOP10</a></li>
+    </ul>
+</section>
+
+<section class="menu-section">
+    <h2>予測結果</h2>
+    <ul class="menu-list">
+        <li><a href="{% url 'results_arima_forecast' %}">ARIMA予測結果一覧</a></li>
+        <li><a href="{% url 'results_xgb_forecast' %}">XGBoost予測結果一覧</a></li>
+    </ul>
+</section>
+
+{% if listing %}
+<section class="menu-section">
+    <h2>銘柄チャート</h2>
+    <ul class="menu-list">
+        <li><a href="{% url 'stock_price_chart' listing.code %}">株価チャート</a></li>
+        <li><a href="{% url 'stock_rsi_chart' listing.code %}{% if rsi_window %}?window={{ rsi_window }}{% endif %}">RSIチャート</a></li>
+        <li><a href="{% url 'stock_macd_chart' listing.code %}">MACDチャート</a></li>
+        <li><a href="{% url 'stock_arima_forecast_chart' listing.code %}">ARIMA予測チャート</a></li>
+        <li><a href="{% url 'stock_xgb_forecast_chart' listing.code %}">XGBoost予測チャート</a></li>
+    </ul>
+</section>
+{% endif %}

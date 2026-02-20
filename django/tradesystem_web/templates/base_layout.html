@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}TradeSystem{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260220-2">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            {% include '_sidebar_menu.html' %}
+        </aside>
+        <main class="app-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

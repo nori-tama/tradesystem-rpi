@@ -3,8 +3,9 @@ from django.db import connection
 from django.shortcuts import render
 
 
-def rankings_macd(request):
+def _rankings_macd(request, direction):
     selected_market = (request.GET.get("market") or "").strip()
+    is_top = direction == 'top'
     window_short = 12
     window_long = 26
     window_signal = 9
@@ -49,11 +50,13 @@ def rankings_macd(request):
                 'window_long': window_long,
                 'window_signal': window_signal,
                 'trade_date': None,
+                'ranking_direction_label': '上位' if is_top else '下位',
+                'ranking_rows': [],
             },
         )
 
     cache_key = (
-        f'rankings_macd:{latest_trade_date}:ws:{window_short}:wl:{window_long}:wsg:{window_signal}:market:{selected_market or "all"}'
+        f'rankings_macd:{direction}:{latest_trade_date}:ws:{window_short}:wl:{window_long}:wsg:{window_signal}:market:{selected_market or "all"}'
     )
     cached_context = cache.get(cache_key)
     if cached_context is not None:
@@ -100,15 +103,14 @@ def rankings_macd(request):
         top_sql = base_sql + " ORDER BY m.histogram DESC LIMIT 10"
         bottom_sql = base_sql + " ORDER BY m.histogram ASC LIMIT 10"
 
-        cursor.execute(top_sql, top_params)
-        top_rows = cursor.fetchall()
+        ranking_sql = top_sql if is_top else bottom_sql
+        ranking_params = top_params if is_top else bottom_params
+        cursor.execute(ranking_sql, ranking_params)
+        ranking_rows_raw = cursor.fetchall()
 
-        cursor.execute(bottom_sql, bottom_params)
-        bottom_rows = cursor.fetchall()
-
-    macd_top10 = []
-    for code, trade_date, macd, signal_v, histogram, name, market in top_rows:
-        macd_top10.append(
+    ranking_rows = []
+    for code, trade_date, macd, signal_v, histogram, name, market in ranking_rows_raw:
+        ranking_rows.append(
             {
                 'code': code,
                 'name': name or '-',
@@ -117,26 +119,14 @@ def rankings_macd(request):
                 'macd': float(macd),
                 'signal': float(signal_v),
                 'histogram': float(histogram),
-            }
-        )
-
-    macd_bottom10 = []
-    for code, trade_date, macd, signal_v, histogram, name, market in bottom_rows:
-        macd_bottom10.append(
-            {
-                'code': code,
-                'name': name or '-',
-                'market': market or '-',
-                'trade_date': trade_date,
-                'macd': float(macd),
-                'signal': float(signal_v),
-                'histogram': float(histogram),
+                'score': float(histogram),
             }
         )
 
     context = {
-        'macd_top10': macd_top10,
-        'macd_bottom10': macd_bottom10,
+        'ranking_rows': ranking_rows,
+        'ranking_direction': direction,
+        'ranking_direction_label': '上位' if is_top else '下位',
         'markets': markets,
         'selected_market': selected_market,
         'window_short': window_short,
@@ -147,3 +137,15 @@ def rankings_macd(request):
     cache.set(cache_key, context, 300)
 
     return render(request, 'rankings_macd.html', context)
+
+
+def rankings_macd_top(request):
+    return _rankings_macd(request, 'top')
+
+
+def rankings_macd_bottom(request):
+    return _rankings_macd(request, 'bottom')
+
+
+def rankings_macd(request):
+    return rankings_macd_top(request)

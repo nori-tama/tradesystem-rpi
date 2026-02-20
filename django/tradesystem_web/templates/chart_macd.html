@@ -1,12 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="utf-8">
-    <title>MACD分析グラフ</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
-</head>
-<body>
+{% extends 'base_layout.html' %}
+
+{% block title %}MACD分析グラフ{% endblock %}
+
+{% block content %}
     <h1>MACD分析グラフ</h1>
     <table class="chart-meta">
         <thead>
@@ -32,13 +28,9 @@
     <div class="meta">株価またはMACDデータがありません。</div>
     {% endif %}
 
-    <div class="pagination">
-        <a class="button" href="{% url 'stock_price_chart' listing.code %}">📈 株価</a>
-        <a class="button" href="{% url 'stock_rsi_chart' listing.code %}">📈 RSI</a>
-        <a class="button" href="{% url 'stock_arima_forecast_chart' listing.code %}">📈 ARIMA</a>
-        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
-    </div>
+{% endblock %}
 
+{% block extra_js %}
     {{ price_chart_labels|json_script:"price-chart-labels" }}
     {{ open_values|json_script:"price-chart-open" }}
     {{ high_values|json_script:"price-chart-high" }}
@@ -187,5 +179,4 @@
             });
         }
     </script>
-</body>
-</html>
+{% endblock %}

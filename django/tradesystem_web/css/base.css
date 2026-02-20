@@ -1,8 +1,83 @@
 body {
     font-family: "Helvetica Neue", Arial, sans-serif;
-    margin: 24px;
+    margin: 12px;
     color: #0f1e2e;
     background: linear-gradient(180deg, #e8f1ff 0%, #f6f9ff 60%, #ffffff 100%);
+}
+
+.app-shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    min-height: calc(100vh - 24px);
+}
+
+.app-sidebar {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(15, 46, 84, 0.08);
+    padding: 16px;
+    position: sticky;
+    top: 12px;
+    align-self: start;
+}
+
+.app-main {
+    min-width: 0;
+}
+
+.menu-title {
+    margin: 0 0 12px;
+    color: var(--blue-900);
+    font-size: 18px;
+}
+
+.menu-section {
+    margin-bottom: 16px;
+}
+
+.menu-section:last-child {
+    margin-bottom: 0;
+}
+
+.menu-section h2 {
+    margin: 0 0 8px;
+    color: var(--blue-700);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.menu-list a {
+    display: block;
+    color: var(--blue-700);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    background: var(--row-alt);
+}
+
+.menu-list a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .app-sidebar {
+        position: static;
+    }
 }
 
 :root {

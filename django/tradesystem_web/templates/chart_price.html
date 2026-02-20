@@ -1,12 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="utf-8">
-    <title>株価グラフ</title>
-    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-2">
-</head>
-<body>
+{% extends 'base_layout.html' %}
+
+{% block title %}株価グラフ{% endblock %}
+
+{% block content %}
     <h1>株価グラフ</h1>
     <table class="chart-meta">
         <thead>
@@ -32,13 +28,9 @@
     <div class="meta">株価データがありません。</div>
     {% endif %}
 
-    <div class="pagination">
-        <a class="button" href="{% url 'stock_arima_forecast_chart' listing.code %}">ARIMA予測グラフへ</a>
-        <a class="button" href="{% url 'stock_rsi_chart' listing.code %}">📈 RSI</a>
-        <a class="button" href="{% url 'stock_macd_chart' listing.code %}">📈 MACD</a>
-        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
-    </div>
+{% endblock %}
 
+{% block extra_js %}
     {{ chart_labels|json_script:"chart-labels" }}
     {{ open_values|json_script:"chart-open" }}
     {{ high_values|json_script:"chart-high" }}
@@ -170,5 +162,4 @@
             }
         }
     </script>
-</body>
-</html>
+{% endblock %}
