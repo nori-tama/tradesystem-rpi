@@ -6,7 +6,7 @@
 ## 2. パッケージ導入（apt）
 外部管理環境（PEP 668）のため、システムパッケージで導入する。
 ```bash
-sudo apt install -y python3-pandas python3-requests python3-pymysql python3-xlrd python3-mysqldb python3-statsmodels
+sudo apt install -y python3-pandas python3-requests python3-pymysql python3-xlrd python3-mysqldb python3-statsmodels python3-sklearn python3-xgboost
 ```
 
 ## 3. 動作確認
@@ -14,6 +14,8 @@ sudo apt install -y python3-pandas python3-requests python3-pymysql python3-xlrd
 python3 - <<'PY'
 import pandas, requests, pymysql, xlrd, MySQLdb
 from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import accuracy_score
+from xgboost import XGBClassifier
 print("ok")
 PY
 ```

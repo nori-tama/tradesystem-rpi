@@ -2,4 +2,6 @@ from .rankings_ma import rankings_ma_estimate
 from .rankings_rsi import rankings_rsi
 from .rankings_macd import rankings_macd
 from .results_arima_forecast import results_arima_forecast
+from .results_xgb_signal import results_xgb_signal
 from .rankings_arima_forecast_rate import rankings_arima_forecast_rate
+from .rankings_xgb_signal_rate import rankings_xgb_signal_rate

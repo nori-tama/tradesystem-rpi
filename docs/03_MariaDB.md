@@ -67,6 +67,7 @@ mysql -u root -e "CREATE DATABASE IF NOT EXISTS tradesystem DEFAULT CHARACTER SE
 ## 6. DDL適用（本プロジェクト）
 本プロジェクトのDDL規約: 各DDLファイルは `DROP TABLE IF EXISTS` の後に `CREATE TABLE` を記述する（`CREATE TABLE IF NOT EXISTS` は使用しない）。
 本プロジェクトのDDL規約: テーブル名/カラム名にSQL予約語を使わない。やむを得ず使う場合は、DDL/DMLの両方でバッククォート（`` ` ``）でエスケープする。
+本プロジェクトのDDL規約: アプリ/バッチで新規テーブル作成が必要になった場合、スクリプト内で自動作成は行わず、DDLファイルを追加したうえで本ドキュメント（`docs/03_MariaDB.md`）の適用手順にも追記する。
 
 ```bash
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/tse_listings.sql
@@ -75,6 +76,7 @@ mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_ma.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_rsi.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_macd.sql
 mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_arima_forecast.sql
+mysql -u root tradesystem < ~/tradesystem-rpi/ddl/stock_prices_daily_xgb_signal.sql
 ```
 
 ## 7. 動作確認

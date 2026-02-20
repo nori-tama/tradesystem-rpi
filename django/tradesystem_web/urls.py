@@ -30,5 +30,7 @@ urlpatterns = [
     path('rankings/rsi/', views.rankings_rsi, name='rankings_rsi'),
     path('rankings/macd/', views.rankings_macd, name='rankings_macd'),
     path('rankings/arima-forecast-rate/', views.rankings_arima_forecast_rate, name='rankings_arima_forecast_rate'),
+    path('rankings/xgb-signal-rate/', views.rankings_xgb_signal_rate, name='rankings_xgb_signal_rate'),
     path('results/arima-forecast/', views.results_arima_forecast, name='results_arima_forecast'),
+    path('results/xgb-signal/', views.results_xgb_signal, name='results_xgb_signal'),
 ]

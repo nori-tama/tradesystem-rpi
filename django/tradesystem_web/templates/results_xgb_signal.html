@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>XGBoost予測結果一覧</title>
+    <link rel="stylesheet" href="{% static 'base.css' %}?v=20260214-4">
+    <link rel="stylesheet" href="{% static 'results_xgb_signal.css' %}?v=20260220-1">
+</head>
+<body>
+    <h1>XGBoost予測結果一覧</h1>
+    <div class="filter-bar">
+        <form method="get">
+            <label for="market">市場・商品区分</label>
+            <select id="market" name="market">
+                <option value="">全て</option>
+                {% for market in markets %}
+                <option value="{{ market }}" {% if market == selected_market %}selected{% endif %}>{{ market }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">絞り込み</button>
+            {% if selected_market %}
+            <a class="button subtle" href="{% url 'results_xgb_signal' %}">クリア</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="meta">
+        予測日: {% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}-{% endif %}
+        / horizon: {% if horizon %}{{ horizon }}{% else %}-{% endif %}
+        / model: {% if model_version %}{{ model_version }}{% else %}-{% endif %}
+        / 件数: {{ page_obj.paginator.count }} ({{ page_obj.number }} / {{ page_obj.paginator.num_pages }}ページ)
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>コード</th>
+                <th>銘柄名</th>
+                <th>市場・商品区分</th>
+                <th>学習終了日</th>
+                <th>予測確率</th>
+                <th>予測ラベル</th>
+                <th>実測ラベル</th>
+                <th>実測騰落率</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in result_rows %}
+            <tr>
+                <td>{{ item.code }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.market }}</td>
+                <td>{% if item.trained_end_date %}{{ item.trained_end_date|date:"Y-m-d" }}{% else %}-{% endif %}</td>
+                <td>{% if item.predicted_prob is not None %}{{ item.predicted_prob|floatformat:4 }}{% else %}-{% endif %}</td>
+                <td>{% if item.predicted_label is not None %}{{ item.predicted_label }}{% else %}-{% endif %}</td>
+                <td>{% if item.actual_label is not None %}{{ item.actual_label }}{% else %}-{% endif %}</td>
+                <td>{% if item.actual_return is not None %}{{ item.actual_return|floatformat:4 }}{% else %}-{% endif %}</td>
+                <td>
+                    <a class="button graph-button" href="{% url 'stock_price_chart' item.code %}">📈 株価</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9">XGBoost予測データがありません。</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="button" href="?page={{ page_obj.previous_page_number }}{% if selected_market %}&market={{ selected_market }}{% endif %}">前ページ</a>
+        {% else %}
+            <span class="button disabled">前ページ</span>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a class="button" href="?page={{ page_obj.next_page_number }}{% if selected_market %}&market={{ selected_market }}{% endif %}">次ページ</a>
+        {% else %}
+            <span class="button disabled">次ページ</span>
+        {% endif %}
+        <a class="button" href="{% url 'tse_listings_list' %}">一覧へ戻る</a>
+    </div>
+</body>
+</html>
