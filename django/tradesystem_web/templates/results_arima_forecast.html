@@ -4,7 +4,7 @@
 {% block title %}ARIMA予測結果一覧{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'results_arima_forecast.css' %}?v=20260215-4">
+<link rel="stylesheet" href="{% static 'results_arima_forecast.css' %}?v=20260215-5">
 {% endblock %}
 
 {% block content %}
@@ -30,7 +30,7 @@
             <tr>
                 <th>コード</th>
                 <th>銘柄名</th>
-                <th>市場・商品区分</th>
+                <th>市場</th>
                 <th>予測基準日<br>{% if forecast_base_date %}{{ forecast_base_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h1_date %}{{ header_h1_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h2_date %}{{ header_h2_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>

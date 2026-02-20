@@ -4,7 +4,7 @@
 {% block title %}XGBoost予測結果一覧{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'results_xgb_forecast.css' %}?v=20260220-1">
+<link rel="stylesheet" href="{% static 'results_xgb_forecast.css' %}?v=20260220-2">
 {% endblock %}
 
 {% block content %}
@@ -35,7 +35,7 @@
             <tr>
                 <th>コード</th>
                 <th>銘柄名</th>
-                <th>市場・商品区分</th>
+                <th>市場</th>
                 <th>学習終了日</th>
                 <th>予測基準日<br>{% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h1_date %}{{ header_h1_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>

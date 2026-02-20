@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.db import connection
 from django.shortcuts import render
 
-from .common import shift_exchange_business_day
+from .common import format_market_label, shift_exchange_business_day
 
 
 def results_arima_forecast(request):
@@ -172,7 +172,7 @@ def results_arima_forecast(request):
                 {
                     'code': code,
                     'name': name or '-',
-                    'market': market or '-',
+                    'market': format_market_label(market),
                     'forecast_base_date': latest_base_date,
                     'base_close': float(base_close) if base_close is not None else None,
                     'h1_trade_date': h1_trade_date,

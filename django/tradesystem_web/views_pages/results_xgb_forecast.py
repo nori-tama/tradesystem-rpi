@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.db import connection
 from django.shortcuts import render
 
-from .common import shift_exchange_business_day
+from .common import shift_exchange_business_day, format_market_label
 
 
 def results_xgb_forecast(request):
@@ -162,11 +162,11 @@ def results_xgb_forecast(request):
             h4_close,
             h5_close,
         ) in rows:
-            result_rows.append(
+                result_rows.append(
                 {
                     "code": code,
                     "name": name or "-",
-                    "market": market or "-",
+                    "market": format_market_label(market),
                     "model_version": model_version,
                     "trained_end_date": trained_end_date,
                     "base_close": float(base_close) if base_close is not None else None,
