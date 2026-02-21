@@ -10,8 +10,13 @@
 <section class="menu-section">
     <h2>ランキング</h2>
     <ul class="menu-list">
-        <li><a href="{% url 'rankings_ma_estimate_top' %}">移動平均 上位 TOP10</a></li>
-        <li><a href="{% url 'rankings_ma_estimate_bottom' %}">移動平均 下位 TOP10</a></li>
+        <li>
+            <h3>移動平均</h3>
+            <div class="menu-inline-links">
+                <a href="{% url 'rankings_ma_estimate_top' %}">上位TOP10</a>
+                <a href="{% url 'rankings_ma_estimate_bottom' %}">下位TOP10</a>
+            </div>
+        </li>
         <li><a href="{% url 'rankings_rsi_top' %}">RSI 上位 TOP10</a></li>
         <li><a href="{% url 'rankings_rsi_bottom' %}">RSI 下位 TOP10</a></li>
         <li><a href="{% url 'rankings_macd_top' %}">MACD 上位 TOP10</a></li>
