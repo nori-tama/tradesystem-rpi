@@ -17,14 +17,34 @@
                 <a href="{% url 'rankings_ma_estimate_bottom' %}">下位TOP10</a>
             </div>
         </li>
-        <li><a href="{% url 'rankings_rsi_top' %}">RSI 上位 TOP10</a></li>
-        <li><a href="{% url 'rankings_rsi_bottom' %}">RSI 下位 TOP10</a></li>
-        <li><a href="{% url 'rankings_macd_top' %}">MACD 上位 TOP10</a></li>
-        <li><a href="{% url 'rankings_macd_bottom' %}">MACD 下位 TOP10</a></li>
-        <li><a href="{% url 'rankings_arima_forecast_rate_top' %}">ARIMA 上位 TOP10</a></li>
-        <li><a href="{% url 'rankings_arima_forecast_rate_bottom' %}">ARIMA 下位 TOP10</a></li>
-        <li><a href="{% url 'rankings_xgb_forecast_rate_top' %}">XGBoost 上位 TOP10</a></li>
-        <li><a href="{% url 'rankings_xgb_forecast_rate_bottom' %}">XGBoost 下位 TOP10</a></li>
+        <li>
+            <h3>RSI</h3>
+            <div class="menu-inline-links">
+                <a href="{% url 'rankings_rsi_top' %}">上位TOP10</a>
+                <a href="{% url 'rankings_rsi_bottom' %}">下位TOP10</a>
+            </div>
+        </li>
+        <li>
+            <h3>MACD</h3>
+            <div class="menu-inline-links">
+                <a href="{% url 'rankings_macd_top' %}">上位TOP10</a>
+                <a href="{% url 'rankings_macd_bottom' %}">下位TOP10</a>
+            </div>
+        </li>
+        <li>
+            <h3>ARIMA</h3>
+            <div class="menu-inline-links">
+                <a href="{% url 'rankings_arima_forecast_rate_top' %}">上位TOP10</a>
+                <a href="{% url 'rankings_arima_forecast_rate_bottom' %}">下位TOP10</a>
+            </div>
+        </li>
+        <li>
+            <h3>XGBoost</h3>
+            <div class="menu-inline-links">
+                <a href="{% url 'rankings_xgb_forecast_rate_top' %}">上位TOP10</a>
+                <a href="{% url 'rankings_xgb_forecast_rate_bottom' %}">下位TOP10</a>
+            </div>
+        </li>
     </ul>
 </section>
 
