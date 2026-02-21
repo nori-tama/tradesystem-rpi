@@ -43,14 +43,14 @@
                 <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h4_date %}{{ header_h4_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h5_date %}{{ header_h5_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
-                <th>操作</th>
+                
             </tr>
         </thead>
         <tbody>
             {% for item in result_rows %}
             <tr>
                 <td>{{ item.code }}</td>
-                <td>{{ item.name }}</td>
+                <td><a href="{% url 'stock_xgb_forecast_chart' item.code %}">{{ item.name }}</a></td>
                 <td>{{ item.market }}</td>
                 <td>{% if item.trained_end_date %}{{ item.trained_end_date|date:"Y-m-d" }}{% else %}-{% endif %}</td>
                 <td>{% if item.base_close is not None %}{{ item.base_close|floatformat:2 }}{% else %}-{% endif %}</td>
@@ -59,13 +59,10 @@
                 <td>{% if item.h3_close is not None %}{{ item.h3_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>{% if item.h4_close is not None %}{{ item.h4_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>{% if item.h5_close is not None %}{{ item.h5_close|floatformat:2 }}{% else %}-{% endif %}</td>
-                <td>
-                    <a class="button graph-button" href="{% url 'stock_xgb_forecast_chart' item.code %}">📈 XGBoost</a>
-                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="11">XGBoost予測データがありません。</td>
+                <td colspan="10">XGBoost予測データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>
