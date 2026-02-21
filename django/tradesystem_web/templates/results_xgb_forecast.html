@@ -26,6 +26,7 @@
     </div>
     <div class="meta">
         予測日: {% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}-{% endif %}
+        / 学習終了日: {% if trained_end_date %}{{ trained_end_date|date:"Y-m-d" }}{% else %}-{% endif %}
         / model: {% if model_version %}{{ model_version }}{% else %}-{% endif %}
         / 件数: {{ page_obj.paginator.count }} ({{ page_obj.number }} / {{ page_obj.paginator.num_pages }}ページ)
     </div>
@@ -36,14 +37,13 @@
                 <th>コード</th>
                 <th>銘柄名</th>
                 <th>市場</th>
-                <th>学習終了日</th>
                 <th>予測基準日<br>{% if trade_date %}{{ trade_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h1_date %}{{ header_h1_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h2_date %}{{ header_h2_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h4_date %}{{ header_h4_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h5_date %}{{ header_h5_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
-                <th>推測値(%)</th>
+                <th>推測値<br>(%)</th>
             </tr>
         </thead>
         <tbody>
@@ -52,7 +52,6 @@
                 <td>{{ item.code }}</td>
                 <td><a href="{% url 'stock_xgb_forecast_chart' item.code %}">{{ item.name }}</a></td>
                 <td>{{ item.market }}</td>
-                <td>{% if item.trained_end_date %}{{ item.trained_end_date|date:"Y-m-d" }}{% else %}-{% endif %}</td>
                 <td>{% if item.base_close is not None %}{{ item.base_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>{% if item.h1_close is not None %}{{ item.h1_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>{% if item.h2_close is not None %}{{ item.h2_close|floatformat:2 }}{% else %}-{% endif %}</td>
@@ -75,7 +74,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="11">XGBoost予測データがありません。</td>
+                <td colspan="10">XGBoost予測データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>

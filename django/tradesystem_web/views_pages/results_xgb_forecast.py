@@ -188,6 +188,13 @@ def results_xgb_forecast(request):
             )
         cache.set(cache_key, result_rows, 300)
 
+    # 全行から共通の学習終了日（最新）を取得してメタ情報に含める
+    trained_end_date_overall = None
+    if result_rows:
+        dates = [r.get("trained_end_date") for r in result_rows if r.get("trained_end_date")]
+        if dates:
+            trained_end_date_overall = max(dates)
+
     paginator = Paginator(result_rows, 15)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -198,6 +205,7 @@ def results_xgb_forecast(request):
         "markets": markets,
         "selected_market": selected_market,
         "trade_date": latest_trade_date,
+        "trained_end_date": trained_end_date_overall,
         "model_version": latest_model_version,
         "header_h1_date": header_h1_date,
         "header_h2_date": header_h2_date,

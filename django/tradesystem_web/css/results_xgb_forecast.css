@@ -5,7 +5,7 @@ td:nth-child(1) {
 
 th:nth-child(2),
 td:nth-child(2) {
-    width: 40%;
+    width: 36%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -13,29 +13,29 @@ td:nth-child(2) {
 
 th:nth-child(3),
 td:nth-child(3) {
-    width: 4%;
+    width: 5%;
     text-align: center;
     white-space: nowrap;
 }
 
 th:nth-child(4),
 td:nth-child(4) {
-    width: 9%;
-}
-
-th:nth-child(n+5):nth-child(-n+10),
-td:nth-child(n+5):nth-child(-n+10) {
     width: 8%;
 }
 
-th:nth-child(11),
-td:nth-child(11) {
-    width: 2%;
+th:nth-child(n+5):nth-child(-n+9),
+td:nth-child(n+5):nth-child(-n+9) {
+    width: 8%;
+}
+
+th:nth-child(10),
+td:nth-child(10) {
+    width: 5%;
     text-align: center;
     white-space: nowrap;
 }
 
-td:nth-child(n+5):nth-child(-n+11) {
+td:nth-child(n+4):nth-child(-n+10) {
     text-align: right;
 }
 
@@ -59,4 +59,15 @@ td:nth-child(n+5):nth-child(-n+11) {
     background: transparent;
     color: var(--blue-900);
     border: 1px solid var(--blue-200);
+}
+
+/* 騰落率の色付け - ARIMAと揃える */
+.pct-positive {
+    color: #c62828; /* 赤 */
+    font-weight: 600;
+}
+
+.pct-negative {
+    color: var(--blue-700); /* 青 */
+    font-weight: 600;
 }
