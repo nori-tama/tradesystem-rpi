@@ -5,24 +5,27 @@ td:nth-child(1) {
 
 th:nth-child(2),
 td:nth-child(2) {
-    width: 38%;
+    width: 40%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 th:nth-child(3),
 td:nth-child(3) {
-    width: 9%;
+    width: 4%;
     text-align: center;
     white-space: nowrap;
 }
 
 th:nth-child(4),
 td:nth-child(4) {
-    width: 10%;
+    width: 9%;
 }
 
 th:nth-child(n+5):nth-child(-n+10),
 td:nth-child(n+5):nth-child(-n+10) {
-    width: 10%;
+    width: 8%;
 }
 
 th:nth-child(11),

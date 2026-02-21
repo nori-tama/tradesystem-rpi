@@ -61,6 +61,24 @@ def results_arima_forecast(request):
     )
     forecast_rows = cache.get(cache_key)
 
+    # キャッシュに古いデータ（h5_pct 未計算）が残っている可能性があるので補完する
+    if forecast_rows is not None:
+        updated = False
+        for r in forecast_rows:
+            if isinstance(r, dict) and 'h5_pct' not in r:
+                base = r.get('base_close')
+                h5 = r.get('h5_close')
+                h5_pct = None
+                if base is not None and h5 is not None and base != 0:
+                    try:
+                        h5_pct = round((float(h5) - float(base)) / float(base) * 100, 2)
+                    except Exception:
+                        h5_pct = None
+                r['h5_pct'] = h5_pct
+                updated = True
+        if updated:
+            cache.set(cache_key, forecast_rows, 300)
+
     if forecast_rows is None:
         with connection.cursor() as cursor:
             if latest_base_date is not None:
@@ -168,6 +186,13 @@ def results_arima_forecast(request):
             h5_trade_date,
             h5_close,
         ) in rows:
+            # 推測騰落率(%): ホライズン h5 の終値と基準終値から計算
+            h5_pct = None
+            if base_close is not None and h5_close is not None and base_close != 0:
+                try:
+                    h5_pct = round((float(h5_close) - float(base_close)) / float(base_close) * 100, 2)
+                except Exception:
+                    h5_pct = None
             forecast_rows.append(
                 {
                     'code': code,
@@ -177,6 +202,7 @@ def results_arima_forecast(request):
                     'base_close': float(base_close) if base_close is not None else None,
                     'h1_trade_date': h1_trade_date,
                     'h1_close': float(h1_close) if h1_close is not None else None,
+                    'h5_pct': h5_pct,
                     'h2_trade_date': h2_trade_date,
                     'h2_close': float(h2_close) if h2_close is not None else None,
                     'h3_trade_date': h3_trade_date,
