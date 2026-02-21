@@ -43,7 +43,7 @@
                 <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h4_date %}{{ header_h4_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h5_date %}{{ header_h5_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
-                
+                <th>推測値(%)</th>
             </tr>
         </thead>
         <tbody>
@@ -59,10 +59,23 @@
                 <td>{% if item.h3_close is not None %}{{ item.h3_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>{% if item.h4_close is not None %}{{ item.h4_close|floatformat:2 }}{% else %}-{% endif %}</td>
                 <td>{% if item.h5_close is not None %}{{ item.h5_close|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>
+                    {% if item.h5_pct is not None %}
+                        {% if item.h5_pct > 0 %}
+                            <span class="pct-positive">{{ item.h5_pct }}%</span>
+                        {% elif item.h5_pct < 0 %}
+                            <span class="pct-negative">{{ item.h5_pct }}%</span>
+                        {% else %}
+                            <span>{{ item.h5_pct }}%</span>
+                        {% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="10">XGBoost予測データがありません。</td>
+                <td colspan="11">XGBoost予測データがありません。</td>
             </tr>
             {% endfor %}
         </tbody>

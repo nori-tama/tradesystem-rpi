@@ -162,7 +162,15 @@ def results_xgb_forecast(request):
             h4_close,
             h5_close,
         ) in rows:
-                result_rows.append(
+            # h5 による推測騰落率(%) を計算
+            h5_pct = None
+            if base_close is not None and h5_close is not None and base_close != 0:
+                try:
+                    h5_pct = round((float(h5_close) - float(base_close)) / float(base_close) * 100, 2)
+                except Exception:
+                    h5_pct = None
+
+            result_rows.append(
                 {
                     "code": code,
                     "name": name or "-",
@@ -175,6 +183,7 @@ def results_xgb_forecast(request):
                     "h3_close": float(h3_close) if h3_close is not None else None,
                     "h4_close": float(h4_close) if h4_close is not None else None,
                     "h5_close": float(h5_close) if h5_close is not None else None,
+                    "h5_pct": h5_pct,
                 }
             )
         cache.set(cache_key, result_rows, 300)

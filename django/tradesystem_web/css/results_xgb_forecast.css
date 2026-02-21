@@ -30,12 +30,12 @@ td:nth-child(n+5):nth-child(-n+10) {
 
 th:nth-child(11),
 td:nth-child(11) {
-    width: 7%;
+    width: 2%;
     text-align: center;
     white-space: nowrap;
 }
 
-td:nth-child(n+5):nth-child(-n+10) {
+td:nth-child(n+5):nth-child(-n+11) {
     text-align: right;
 }
 

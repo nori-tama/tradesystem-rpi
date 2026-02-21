@@ -4,7 +4,7 @@
 {% block title %}ARIMA予測結果一覧{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'results_arima_forecast.css' %}?v=20260215-5">
+<link rel="stylesheet" href="{% static 'results_arima_forecast.css' %}?v=20260215-6">
 {% endblock %}
 
 {% block content %}
@@ -37,7 +37,7 @@
                 <th>予測日<br>{% if header_h3_date %}{{ header_h3_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h4_date %}{{ header_h4_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
                 <th>予測日<br>{% if header_h5_date %}{{ header_h5_date|date:"Y-m-d" }}{% else %}yyyy-mm-dd{% endif %}</th>
-                <th>推測値(%)</th>
+                <th>推測値<br>(%)</th>
             </tr>
         </thead>
         <tbody>
