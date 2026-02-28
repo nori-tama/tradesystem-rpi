@@ -3,6 +3,7 @@
 このドキュメントは、Raspberry Pi（ARM）上に Apache Airflow を pip ベースで導入する手順をまとめたもの。軽量化のための注意点や systemd による自動起動例、トラブルシューティングも含む。
 
 **前提 / 推奨（MySQL を利用する前提）**
+- 本手順は PostgreSQL を使用しない、MySQL/MariaDB 専用の手順です。
 - OS: Raspberry Pi OS（64-bit 推奨）または Debian 系（最新のセキュリティパッチ適用）
 - Python: `python3`（推奨 3.10 / 3.11。Airflow のバージョンに依存）
 - メモリ: 最低 1GB（実運用では 2GB 以上推奨）。Swap の設定を検討。
@@ -25,7 +26,8 @@
 1) システム更新と依存パッケージ
 
 ```bash
-sudo apt install -y build-essential libssl-dev libffi-dev libpq-dev libxml2-dev libxslt1-dev python3-dev git curl
+# MySQL 用の開発パッケージを含めた最小依存パッケージ
+sudo apt install -y build-essential libssl-dev libffi-dev default-libmysqlclient-dev libxml2-dev libxslt1-dev python3-dev git curl
 # cryptography のビルドに rust が必要な場合:
 sudo apt install -y cargo
 ```
