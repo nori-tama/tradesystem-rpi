@@ -32,18 +32,28 @@ sudo apt install -y build-essential libssl-dev libffi-dev default-libmysqlclient
 sudo apt install -y cargo
 ```
 
-2) 専用ユーザーと `AIRFLOW_HOME`（任意）
+2) 専用ユーザーと `AIRFLOW_HOME` の作成
+
+以下は systemd で `User=airflow` として動作させる前提の手順です。既に `/home/airflow` が存在して所有者が `pi` など別ユーザーになっている場合は所有権を修正してください。
 
 ```bash
-# 任意で専用ユーザーを作成する例（システムユーザー）
-sudo adduser --system --group --home /home/airflow airflow
-sudo mkdir -p /home/airflow/airflow
-sudo chown -R $(whoami):$(whoami) /home/airflow/airflow
+# 1) 専用の system ユーザーを作成（既に存在する場合はスキップ）
+sudo adduser --system --group --home /home/airflow --shell /bin/false airflow
 
-# シェルに環境変数を設定
-export AIRFLOW_HOME=/home/$(whoami)/airflow
-mkdir -p "$AIRFLOW_HOME"
+# 2) Airflow 用ディレクトリを作成し、所有者を airflow にする
+sudo mkdir -p /home/airflow/airflow
+sudo chown -R airflow:airflow /home/airflow
+sudo chmod 750 /home/airflow
+
+# 3) 所有者/ユーザーの確認
+id airflow
+ls -ld /home/airflow /home/airflow/airflow
+
+# 4) 環境変数（シェルで一時適用する場合）
+export AIRFLOW_HOME=/home/airflow/airflow
 ```
+
+注: 既に `pi` ユーザーでディレクトリを作成してしまった場合は `sudo chown -R airflow:airflow /home/airflow` で修正してください。systemd ユニットは `User=airflow` を想定していますので、所有者が一致しないと起動時にファイルアクセスエラーが発生します。
 
 3) Python と pip の準備（システム全体インストール）
 
