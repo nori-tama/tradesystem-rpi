@@ -3,11 +3,11 @@
 このドキュメントは、Raspberry Pi（ARM）上に Apache Airflow を pip ベースで導入する手順をまとめたもの。軽量化のための注意点や systemd による自動起動例、トラブルシューティングも含む。
 
 **前提 / 推奨（MySQL を利用する前提）**
-- 本手順は PostgreSQL を使用しない、MySQL/MariaDB 専用の手順です。
+- 本手順は PostgreSQL を使用しない、MySQL 専用の手順です（Airflow 公式は MariaDB 非対応）。
 - OS: Raspberry Pi OS（64-bit 推奨）または Debian 系（最新のセキュリティパッチ適用）
 - Python: `python3`（本手順は 3.13 系を想定。Airflow 3.1.7 を使用）
 - メモリ: 最低 1GB（実運用では 2GB 以上推奨）。Swap の設定を検討。
-- DB: 本手順は `MySQL` / `MariaDB` を想定しています。開発/検証は SQLite でも可ですが、運用では MySQL を利用してください（SQLite は Scheduler の競合で非推奨）。
+- DB: 本手順は `MySQL` を想定しています。開発/検証は SQLite でも可ですが、運用では MySQL を利用してください（SQLite は Scheduler の競合で非推奨）。
 
 ---
 
@@ -91,11 +91,16 @@ PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.v
 CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 ```
 
+```bash
+# constraints URL の事前確認（404 を先に検知）
+curl -fSL "${CONSTRAINT_URL}" >/dev/null
+```
+
 # Airflow 本体をシステム全体にインストール
 # 注: Airflow 本体は apt の `python3-<package>` で提供されない場合があるため、ここは例外として pip を使用
 #     (プロジェクト規約により仮想環境を使わないため、PEP 668 回避として --break-system-packages を付与)
 ```bash
-sudo python3 -m pip install --break-system-packages "apache-airflow[mysql]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+sudo python3 -m pip install --break-system-packages --ignore-installed "apache-airflow[mysql]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
 ```
 
 # MySQL 用の Python ドライバは apt の python3-<package> 形式で導入
@@ -106,11 +111,18 @@ sudo apt install -y default-libmysqlclient-dev build-essential python3-mysqldb
 注: `AIRFLOW_VERSION` と `PYTHON_VERSION` は使う環境に合わせて変更してください。
 注: Python 3.13 系で実行する場合、constraints URL は `constraints-3.13.txt` が存在する Airflow バージョンを指定してください（本手順の `3.1.7` は対応）。
 
+```bash
+# 導入確認（PATH 非依存）
+sudo python3 -m airflow version
+```
+
+注: `Attempting uninstall ... error: uninstall-no-record-file` が出る環境では、`--ignore-installed` を外さないでください。
+
 ---
 
-4a) MySQL / MariaDB の前提と Airflow 用 DB 作成例
+4a) MySQL の前提と Airflow 用 DB 作成例
 
-本手順は、MySQL / MariaDB が既にインストールされ、`mysql_secure_installation` 等による基本的な初期セキュリティ設定（root パスワード設定、不要な匿名ユーザー削除、リモート root ログイン無効化など）が実施済みであることを前提とします。
+本手順は、MySQL が既にインストールされ、`mysql_secure_installation` 等による基本的な初期セキュリティ設定（root パスワード設定、不要な匿名ユーザー削除、リモート root ログイン無効化など）が実施済みであることを前提とします。
 
 以下は Airflow 用のデータベースとユーザーを作成する最小の例です。ローカル DB を利用する場合は `localhost` に、外部 DB を利用する場合はホスト名を変更してください。
 
@@ -132,8 +144,8 @@ export AIRFLOW__CORE__SQL_ALCHEMY_CONN='mysql://airflow:change_me_password@local
 
 # 環境変数を永続化したい場合は ~/.profile や systemd ユニット内で指定します。
 
-# DB 初期化
-airflow db init
+# DB 初期化/マイグレーション（Airflow 3 系）
+sudo python3 -m airflow db migrate
 ```
 
 注: パスワードやホストは運用環境に合わせてください。外部 DB を使う場合は `localhost` を外部ホスト名に置き換えます。
@@ -144,10 +156,10 @@ airflow db init
 export AIRFLOW_HOME=/home/airflow/airflow
 
 # DB 初期化（MySQL を使用する場合は環境変数で接続先を指定済みの前提）
-airflow db init
+sudo python3 -m airflow db migrate
 
 # 管理ユーザー作成（例）
-airflow users create \
+sudo python3 -m airflow users create \
   --username admin \
   --firstname Admin \
   --lastname User \
@@ -159,8 +171,8 @@ airflow users create \
 
 ```bash
 # 別ターミナルでそれぞれ実行
-airflow scheduler &
-airflow webserver -p 8080 &
+sudo python3 -m airflow scheduler &
+sudo python3 -m airflow webserver -p 8080 &
 # ブラウザで http://<RaspberryPiのIP>:8080 にアクセス
 ```
 
@@ -178,7 +190,7 @@ Description=Airflow webserver
 [Service]
 Type=simple
 Environment=AIRFLOW_HOME=/home/youruser/airflow
-ExecStart=/usr/local/bin/airflow webserver -p 8080
+ExecStart=/usr/bin/python3 -m airflow webserver -p 8080
 Restart=always
 RestartSec=5s
 
@@ -195,7 +207,7 @@ Description=Airflow scheduler
 [Service]
 Type=simple
 Environment=AIRFLOW_HOME=/home/youruser/airflow
-ExecStart=/usr/local/bin/airflow scheduler
+ExecStart=/usr/bin/python3 -m airflow scheduler
 Restart=always
 RestartSec=5s
 
@@ -222,6 +234,8 @@ systemctl --user enable --now airflow-scheduler
 ---
 
 ## よくあるトラブルと対処
+- `airflow: command not found`: `airflow` コマンドを直接呼ばず、`sudo python3 -m airflow version` / `sudo python3 -m airflow db migrate` で実行する。
+- `uninstall-no-record-file`: apt 管理パッケージと pip が衝突しているため、Airflow 導入コマンドに `--ignore-installed` を付ける。
 - ビルド失敗 (`cryptography` 等): `rustc`/`cargo` が必要になることがあります。`sudo apt install cargo` を試す。
 - OpenSSL 関連エラー: `libssl-dev` のインストールを確認する。
 - メモリ不足でプロセスが落ちる: Swap を一時的に増やす、不要プロセスを停止する。
@@ -246,7 +260,7 @@ User=airflow
 Group=airflow
 Environment=AIRFLOW_HOME=/home/airflow/airflow
 Environment=AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql://airflow:change_me_password@localhost:3306/airflow_db?charset=utf8mb4
-ExecStart=/usr/local/bin/airflow webserver -p 8080
+ExecStart=/usr/bin/python3 -m airflow webserver -p 8080
 Restart=always
 RestartSec=5s
 WorkingDirectory=/home/airflow/airflow
@@ -268,7 +282,7 @@ User=airflow
 Group=airflow
 Environment=AIRFLOW_HOME=/home/airflow/airflow
 Environment=AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql://airflow:change_me_password@localhost:3306/airflow_db?charset=utf8mb4
-ExecStart=/usr/local/bin/airflow scheduler
+ExecStart=/usr/bin/python3 -m airflow scheduler
 Restart=always
 RestartSec=5s
 WorkingDirectory=/home/airflow/airflow
