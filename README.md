@@ -20,4 +20,5 @@
 - パッケージ導入が必要な場合は `docs/02_Pythonパッケージ導入.md` に記載する。
 - Pythonの仮想環境（`venv`/`virtualenv`）は使用しない。
 - 追加のPythonライブラリは、`python3-<package>` 形式の Debian パッケージとして導入する。
+- パッケージ導入手順に `sudo apt update` は記載しない（不要）。
 - ドキュメントの追加/更新/削除があった場合は、READMEの目次も更新する。

@@ -68,7 +68,6 @@ PEP 668 により、Debian 系ではシステム Python への `sudo pip` が制
 
 # Python 実行環境と関連ツールを apt で導入
 ```bash
-sudo apt update
 sudo apt install -y python3-pip python3-setuptools python3-wheel python3-full
 ```
 
