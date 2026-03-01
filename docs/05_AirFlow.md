@@ -13,8 +13,8 @@
 
 ## 全体の流れ（短縮）
 1. システム更新と必須パッケージ導入
-2. Python と pip の準備（システム/ユーザー単位の手順）
-3. Airflow を constraints 指定で pip インストール
+2. Python パッケージの準備（apt 管理）
+3. Airflow 本体を constraints 指定でインストール
 4. `AIRFLOW_HOME` 設定、DB 接続設定（MySQL）、DB 初期化
 5. 管理ユーザー作成
 6. Web サーバー / Scheduler 起動（systemd での自動起動推奨）
@@ -62,12 +62,14 @@ export AIRFLOW_HOME=/home/airflow/airflow
 
 3) Python パッケージの準備（apt 管理）
 
+プロジェクト規約により、Python の仮想環境（`venv`/`virtualenv`）は使用しません。
 PEP 668 により、Debian 系ではシステム Python への `sudo pip` が制限されます。システム全体へ追加する Python ライブラリは `python3-<package>` 形式で導入してください。
+本手順内の追加ライブラリ導入は、すべて `python3-<package>` 形式で実施します。
 
 # Python 実行環境と関連ツールを apt で導入
 ```bash
 sudo apt update
-sudo apt install -y python3-pip python3-setuptools python3-wheel python3-venv python3-full
+sudo apt install -y python3-pip python3-setuptools python3-wheel python3-full
 ```
 
 # 追加パッケージは python3-<package> 形式で導入
@@ -80,7 +82,7 @@ sudo apt install -y python3-numpy python3-pandas
 apt-cache search '^python3-' | grep -i <keyword>
 ```
 
-4) Airflow インストール（constraints を必ず使用）
+4) Airflow 本体インストール（constraints を必ず使用）
 
 Airflow は依存関係が多く、必ずリリースに対応した constraints ファイルを使ってください。
 
@@ -90,9 +92,11 @@ PYTHON_VERSION=3.10
 CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 ```
 
-# MySQL を使用するための extra を指定してシステム全体にインストール
+# Airflow 本体をシステム全体にインストール
+# 注: Airflow 本体は apt の `python3-<package>` で提供されない場合があるため、ここは例外として pip を使用
+#     (プロジェクト規約により仮想環境を使わないため、PEP 668 回避として --break-system-packages を付与)
 ```bash
-sudo python3 -m pip install "apache-airflow[mysql]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+sudo python3 -m pip install --break-system-packages "apache-airflow[mysql]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
 ```
 
 # MySQL 用の Python ドライバは apt の python3-<package> 形式で導入
