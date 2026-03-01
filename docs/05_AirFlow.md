@@ -36,24 +36,24 @@ sudo apt install -y cargo
 
 以下は systemd で `User=airflow` として動作させる前提の手順です。既に `/home/airflow` が存在して所有者が `pi` など別ユーザーになっている場合は所有権を修正してください。
 
-# 1) 専用の system ユーザーを作成（既に存在する場合はスキップ）
+#### 1) 専用の system ユーザーを作成（既に存在する場合はスキップ）
 ```bash
 sudo adduser --system --group --home /home/airflow --shell /bin/false airflow
 ```
 
-# 2) Airflow 用ディレクトリを作成し、所有者を airflow にする
+#### 2) Airflow 用ディレクトリを作成し、所有者を airflow にする
 ```bash
 sudo mkdir -p /home/airflow/airflow
 sudo chown -R airflow:airflow /home/airflow
 ```
 
-# 3) 所有者/ユーザーの確認
+#### 3) 所有者/ユーザーの確認
 ```bash
 id airflow
 ls -ld /home/airflow /home/airflow/airflow
 ```
 
-# 4) 環境変数（シェルで一時適用する場合）
+#### 4) 環境変数（シェルで一時適用する場合）
 ```bash
 export AIRFLOW_HOME=/home/airflow/airflow
 ```
