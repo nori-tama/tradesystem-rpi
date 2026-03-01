@@ -60,13 +60,24 @@ export AIRFLOW_HOME=/home/airflow/airflow
 
 注: 既に `pi` ユーザーでディレクトリを作成してしまった場合は `sudo chown -R airflow:airflow /home/airflow` で修正してください。systemd ユニットは `User=airflow` を想定していますので、所有者が一致しないと起動時にファイルアクセスエラーが発生します。
 
-3) Python と pip の準備（システム全体インストール）
+3) Python パッケージの準備（apt 管理）
 
-本手順はシステム全体へインストールする前提です。システム全体にインストールすることで `airflow` コマンドを全ユーザーが利用できるようにします。
+PEP 668 により、Debian 系ではシステム Python への `sudo pip` が制限されます。システム全体へ追加する Python ライブラリは `python3-<package>` 形式で導入してください。
 
+# Python 実行環境と関連ツールを apt で導入
 ```bash
-# pip とビルドツールをシステム全体に更新・インストール
-sudo python3 -m pip install --upgrade pip setuptools wheel
+sudo apt update
+sudo apt install -y python3-pip python3-setuptools python3-wheel python3-venv python3-full
+```
+
+# 追加パッケージは python3-<package> 形式で導入
+```bash
+sudo apt install -y python3-numpy python3-pandas
+```
+
+# 必要なパッケージ名を探す例
+```bash
+apt-cache search '^python3-' | grep -i <keyword>
 ```
 
 4) Airflow インストール（constraints を必ず使用）
@@ -77,13 +88,16 @@ Airflow は依存関係が多く、必ずリリースに対応した constraints
 AIRFLOW_VERSION=2.8.3
 PYTHON_VERSION=3.10
 CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+```
 
 # MySQL を使用するための extra を指定してシステム全体にインストール
+```bash
 sudo python3 -m pip install "apache-airflow[mysql]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+```
 
-# MySQL 用の Python ドライバ（mysqlclient）を利用する場合、事前にシステム依存パッケージを入れておく
-sudo apt install -y default-libmysqlclient-dev build-essential
-sudo python3 -m pip install mysqlclient
+# MySQL 用の Python ドライバは apt の python3-<package> 形式で導入
+```bash
+sudo apt install -y default-libmysqlclient-dev build-essential python3-mysqldb
 ```
 
 注: `AIRFLOW_VERSION` と `PYTHON_VERSION` は使う環境に合わせて変更してください。
