@@ -5,7 +5,7 @@
 **前提 / 推奨（MySQL を利用する前提）**
 - 本手順は PostgreSQL を使用しない、MySQL/MariaDB 専用の手順です。
 - OS: Raspberry Pi OS（64-bit 推奨）または Debian 系（最新のセキュリティパッチ適用）
-- Python: `python3`（本手順は 3.13 系を想定。Airflow の対応バージョンを使用）
+- Python: `python3`（本手順は 3.13 系を想定。Airflow 3.1.7 を使用）
 - メモリ: 最低 1GB（実運用では 2GB 以上推奨）。Swap の設定を検討。
 - DB: 本手順は `MySQL` / `MariaDB` を想定しています。開発/検証は SQLite でも可ですが、運用では MySQL を利用してください（SQLite は Scheduler の競合で非推奨）。
 
@@ -86,7 +86,7 @@ apt-cache search '^python3-' | grep -i <keyword>
 Airflow は依存関係が多く、必ずリリースに対応した constraints ファイルを使ってください。
 
 ```bash
-AIRFLOW_VERSION=2.11.1
+AIRFLOW_VERSION=3.1.7
 PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
 CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 ```
@@ -104,7 +104,7 @@ sudo apt install -y default-libmysqlclient-dev build-essential python3-mysqldb
 ```
 
 注: `AIRFLOW_VERSION` と `PYTHON_VERSION` は使う環境に合わせて変更してください。
-注: `apache-airflow==2.8.3` は Python 3.13 系では導入できません。Python 3.13 系では 2.11.1 以降の対応版を使用してください。
+注: Python 3.13 系で実行する場合、constraints URL は `constraints-3.13.txt` が存在する Airflow バージョンを指定してください（本手順の `3.1.7` は対応）。
 
 ---
 
