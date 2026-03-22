@@ -128,19 +128,23 @@ sudo python3 -m airflow version
 
 ```bash
 sudo mysql -u root -p <<'SQL'
+DROP DATABASE IF EXISTS airflow_db;
+DROP USER IF EXISTS 'airflow'@'localhost';
 CREATE DATABASE airflow_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'airflow'@'localhost' IDENTIFIED BY 'change_me_password';
+CREATE USER 'airflow'@'localhost' IDENTIFIED BY 'airflow';
 GRANT ALL PRIVILEGES ON airflow_db.* TO 'airflow'@'localhost';
 FLUSH PRIVILEGES;
 SQL
 ```
+
+注: 既存の `airflow_db` 内データは `DROP DATABASE` により削除されます。必要に応じて事前にバックアップしてください。
 
 5) Airflow の DB 接続設定（MySQL）
 
 Airflow は SQLAlchemy の接続文字列で DB 接続を指定します。環境変数で設定する例を示します。
 
 ```bash
-export AIRFLOW__CORE__SQL_ALCHEMY_CONN='mysql://airflow:change_me_password@localhost:3306/airflow_db?charset=utf8mb4'
+export AIRFLOW__CORE__SQL_ALCHEMY_CONN='mysql://airflow:airflow@localhost:3306/airflow_db?charset=utf8mb4'
 
 # 環境変数を永続化したい場合は ~/.profile や systemd ユニット内で指定します。
 
@@ -150,7 +154,7 @@ sudo python3 -m airflow db migrate
 
 注: パスワードやホストは運用環境に合わせてください。外部 DB を使う場合は `localhost` を外部ホスト名に置き換えます。
 
-6) 初期設定・DB 初期化・管理ユーザー作成
+6) 初期設定・DB 初期化・管理ユーザー設定
 
 ```bash
 export AIRFLOW_HOME=/home/airflow/airflow
@@ -158,21 +162,79 @@ export AIRFLOW_HOME=/home/airflow/airflow
 # DB 初期化（MySQL を使用する場合は環境変数で接続先を指定済みの前提）
 sudo python3 -m airflow db migrate
 
-# 管理ユーザー作成（例）
-sudo python3 -m airflow users create \
-  --username admin \
-  --firstname Admin \
-  --lastname User \
-  --role Admin \
-  --email admin@example.com
+# Airflow 3 の既定（SimpleAuthManager）で管理ユーザーを定義
+export AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS='admin:admin'
 ```
+
+注: SimpleAuthManager では `airflow users create` は使えません。初回起動時にパスワードが自動生成され、API サーバーのログと
+`$AIRFLOW_HOME/simple_auth_manager_passwords.json.generated` に保存されます。
+
+注: `sudo python3 -m airflow config get-value core auth_manager` で現在の auth manager を確認できます。
+
+Python 3.13 環境では FAB auth manager を使わず、SimpleAuthManager 前提で運用してください。
+
+固定パスワードにしたい場合（Python 3.13 のまま実施可）:
+
+```bash
+# 1) sudo に環境変数を引き継いで、auth manager を確認
+export AIRFLOW_HOME=/home/airflow/airflow
+export AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS='admin:admin'
+sudo -E python3 -m airflow config get-value core auth_manager
+
+# 2) 先に airflow を起動して password ファイルを生成
+sudo -E python3 -m airflow api-server -p 8080
+
+# 3) 別ターミナルで固定パスワードへ更新（生成先を自動探索）
+sudo -E python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+paths = []
+home = os.environ.get('AIRFLOW_HOME')
+if home:
+	paths.append(Path(home) / 'simple_auth_manager_passwords.json.generated')
+paths.extend([
+	Path('/home/airflow/airflow/simple_auth_manager_passwords.json.generated'),
+	Path('/root/airflow/simple_auth_manager_passwords.json.generated'),
+])
+
+target = next((p for p in paths if p.exists()), None)
+if target is None:
+	raise SystemExit(
+		'password file not found. Keep api-server running once, then retry. '
+		'Also check AIRFLOW_HOME/auth_manager settings.'
+	)
+
+raw = target.read_text(encoding='utf-8').strip()
+data = json.loads(raw) if raw else {}
+data['admin'] = 'admin'
+target.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+print(f'updated: {target}')
+PY
+
+# 4) api-server を再起動して反映
+sudo pkill -f "airflow api-server" || true
+sudo -E python3 -m airflow api-server -p 8080
+```
+
+注: 上記の `admin` は `AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS='admin:admin'` で定義したユーザー名です。
+`AIRFLOW_HOME` を変更している場合は JSON ファイルのパスも変更してください。
+
+一時的なローカル検証だけで認証を無効化する場合:
+
+```bash
+export AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS='True'
+```
+
+注: `SIMPLE_AUTH_MANAGER_ALL_ADMINS=True` は全員 admin 扱いになるため、本番運用では使用しないでください。
 
 7) 起動（開発・動作確認用）
 
 ```bash
 # 別ターミナルでそれぞれ実行
 sudo python3 -m airflow scheduler &
-sudo python3 -m airflow webserver -p 8080 &
+sudo python3 -m airflow api-server -p 8080 &
 # ブラウザで http://<RaspberryPiのIP>:8080 にアクセス
 ```
 
@@ -181,16 +243,17 @@ sudo python3 -m airflow webserver -p 8080 &
 ## systemd による自動起動例
 以下はユーザー単位（`systemctl --user`）の例です。`youruser` を利用中のユーザー名に置き換えてください。
 
-`~/.config/systemd/user/airflow-webserver.service`:
+`~/.config/systemd/user/airflow-api-server.service`:
 
 ```
 [Unit]
-Description=Airflow webserver
+Description=Airflow API server
 
 [Service]
 Type=simple
 Environment=AIRFLOW_HOME=/home/youruser/airflow
-ExecStart=/usr/bin/python3 -m airflow webserver -p 8080
+Environment=AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS=admin:admin
+ExecStart=/usr/bin/python3 -m airflow api-server -p 8080
 Restart=always
 RestartSec=5s
 
@@ -207,6 +270,7 @@ Description=Airflow scheduler
 [Service]
 Type=simple
 Environment=AIRFLOW_HOME=/home/youruser/airflow
+Environment=AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS=admin:admin
 ExecStart=/usr/bin/python3 -m airflow scheduler
 Restart=always
 RestartSec=5s
@@ -219,7 +283,7 @@ WantedBy=default.target
 
 ```bash
 systemctl --user daemon-reload
-systemctl --user enable --now airflow-webserver
+systemctl --user enable --now airflow-api-server
 systemctl --user enable --now airflow-scheduler
 ```
 
@@ -235,6 +299,9 @@ systemctl --user enable --now airflow-scheduler
 
 ## よくあるトラブルと対処
 - `airflow: command not found`: `airflow` コマンドを直接呼ばず、`sudo python3 -m airflow version` / `sudo python3 -m airflow db migrate` で実行する。
+- `airflow command error: invalid choice: 'users'`: Airflow 3 の既定（SimpleAuthManager）では `users` CLI は使用不可。`AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS` を設定し、必要なら `simple_auth_manager_passwords.json.generated` を直接更新してパスワードを固定する。
+- `FileNotFoundError: ... simple_auth_manager_passwords.json.generated`: まだファイル未生成か、`sudo` 実行時に `AIRFLOW_HOME` が変わって別パスを見ている。`sudo -E` で `AIRFLOW_HOME` を引き継ぎ、`api-server` を一度起動してから再実行する。
+- `No module named 'connexion'` / `No module named 'cachetools'`: FAB auth manager 依存の読み込み失敗。Python 3.13 運用では FAB を使わず、SimpleAuthManager を使用する。
 - `uninstall-no-record-file`: apt 管理パッケージと pip が衝突しているため、Airflow 導入コマンドに `--ignore-installed` を付ける。
 - ビルド失敗 (`cryptography` 等): `rustc`/`cargo` が必要になることがあります。`sudo apt install cargo` を試す。
 - OpenSSL 関連エラー: `libssl-dev` のインストールを確認する。
@@ -247,11 +314,11 @@ systemctl --user enable --now airflow-scheduler
 ## systemd による自動起動例（システムサービス）
 以下はシステム全体で管理する `/etc/systemd/system/` に配置するサービスユニットの例です。専用のシステムユーザー `airflow` を作成してそのユーザーで動かすことを想定しています。
 
-`/etc/systemd/system/airflow-webserver.service`:
+`/etc/systemd/system/airflow-api-server.service`:
 
 ```
 [Unit]
-Description=Airflow webserver
+Description=Airflow API server
 After=network.target
 
 [Service]
@@ -259,8 +326,9 @@ Type=simple
 User=airflow
 Group=airflow
 Environment=AIRFLOW_HOME=/home/airflow/airflow
-Environment=AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql://airflow:change_me_password@localhost:3306/airflow_db?charset=utf8mb4
-ExecStart=/usr/bin/python3 -m airflow webserver -p 8080
+Environment=AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql://airflow:cairflow@localhost:3306/airflow_db?charset=utf8mb4
+Environment=AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS=admin:admin
+ExecStart=/usr/bin/python3 -m airflow api-server -p 8080
 Restart=always
 RestartSec=5s
 WorkingDirectory=/home/airflow/airflow
@@ -282,6 +350,7 @@ User=airflow
 Group=airflow
 Environment=AIRFLOW_HOME=/home/airflow/airflow
 Environment=AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql://airflow:change_me_password@localhost:3306/airflow_db?charset=utf8mb4
+Environment=AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS=admin:admin
 ExecStart=/usr/bin/python3 -m airflow scheduler
 Restart=always
 RestartSec=5s
@@ -295,7 +364,7 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now airflow-webserver.service
+sudo systemctl enable --now airflow-api-server.service
 sudo systemctl enable --now airflow-scheduler.service
 ```
 
