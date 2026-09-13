@@ -7,6 +7,7 @@
 - [docs/03_MariaDB.md](docs/03_MariaDB.md)
 - [docs/04_Django.md](docs/04_Django.md)
 - [docs/05_AirFlow.md](docs/05_AirFlow.md)
+- [Windows 11端末設定（セットアップスクリプトを使用）](docs/07_Windows11端末設定.md)
 - [docs/10_システム仕様書.md](docs/10_システム仕様書.md)
 
 ## プロジェクト規約
